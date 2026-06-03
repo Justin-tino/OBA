@@ -136,7 +136,7 @@ router.put('/:id', requireEmployee, async (req, res) => {
 });
 
 // DELETE /api/inventory/:id
-router.delete('/:id', requireManager, async (req, res) => {
+router.delete('/:id', requireEmployee, async (req, res) => {
   const { id } = req.params;
   const biz = req.query.biz || req.body.businessCategory || 'RENTAL';
   try {
