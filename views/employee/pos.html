@@ -173,17 +173,27 @@ let inventory = [];
 let paymentMethod = 'cash';
 let currentBiz = 'RENTAL';
 let scanner = null;
-let taxRates = { RENTAL: 12, BUSINESS: 12, AGRI: 0, NON_AGRI: 12 };
+const DEFAULT_TAX_RATES = { RENTAL: 12, BUSINESS: 12, AGRI: 0, NON_AGRI: 12 };
+let taxRates = { ...DEFAULT_TAX_RATES };
 
 async function fetchTaxRates() {
   try {
     const res = await API.get('/api/admin/taxes');
     if (res.success && res.data) {
-      taxRates = res.data;
+      taxRates = { ...DEFAULT_TAX_RATES, ...res.data };
     }
   } catch (e) {
     console.warn('Failed to fetch tax rates:', e);
   }
+}
+
+function getTaxRate() {
+  const rate = taxRates[currentBiz];
+  if (rate === undefined || rate === null) {
+    console.warn(`No tax rate for ${currentBiz}, using default`);
+    return DEFAULT_TAX_RATES[currentBiz] || 0;
+  }
+  return Number(rate) || 0;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -368,7 +378,7 @@ function renderCart() {
 
 function updateTotals() {
   const subtotal = cart.reduce((a,c) => a + (c.unitPrice * c.qty), 0);
-  const rate = taxRates[currentBiz] || 0;
+  const rate = getTaxRate();
   const taxAmount = subtotal * (rate / 100);
   const total = subtotal + taxAmount;
 
@@ -380,7 +390,7 @@ function updateTotals() {
 
 function updateChange() {
   const subtotal = cart.reduce((a,c) => a + (c.unitPrice * c.qty), 0);
-  const rate = taxRates[currentBiz] || 0;
+  const rate = getTaxRate();
   const taxAmount = subtotal * (rate / 100);
   const total = subtotal + taxAmount;
 
@@ -406,7 +416,7 @@ function clearCart() {
 async function checkout() {
   if (!cart.length) { Toast.warning('Cart is empty'); return; }
   const subtotal = cart.reduce((a,c) => a + (c.unitPrice * c.qty), 0);
-  const rate = taxRates[currentBiz] || 0;
+  const rate = getTaxRate();
   const taxAmount = subtotal * (rate / 100);
   const total = subtotal + taxAmount;
 
