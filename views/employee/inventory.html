@@ -231,19 +231,13 @@ async function saveProduct() {
 
 async function deleteProduct(id) {
   if (!window.confirm('Delete this product?')) return;
-  Toast.info('Deleting product...');
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch('/api/inventory/' + id, { method: 'DELETE', credentials: 'same-origin', signal: controller.signal });
-    clearTimeout(timeout);
-    if (!res.ok) { const txt = await res.text().catch(()=>''); throw new Error('HTTP ' + res.status + ': ' + txt.substring(0,80)); }
+    const res = await fetch('/api/inventory/' + id + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', credentials: 'same-origin' });
     const data = await res.json();
     if (data.success) { Toast.success('Product deleted'); loadData(); }
     else { Toast.error(data.message || 'Delete failed'); }
   } catch(e) {
-    if (e.name === 'AbortError') Toast.error('Request timed out — server may be unreachable');
-    else Toast.error('Error: ' + e.message);
+    Toast.error('Delete failed: ' + e.message);
   }
 }
 

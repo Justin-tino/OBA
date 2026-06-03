@@ -138,10 +138,8 @@ router.put('/:id', requireEmployee, async (req, res) => {
 // DELETE /api/inventory/:id
 router.delete('/:id', requireEmployee, async (req, res) => {
   const { id } = req.params;
-  const biz = req.query.biz || req.body.businessCategory || 'RENTAL';
   try {
     if (!db) return res.json({ success: true });
-    // Search all categories for this product if biz not specified
     const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'];
     for (const cat of categories) {
       const snap = await db.ref(`inventory/${cat}/${id}`).once('value');
@@ -150,7 +148,26 @@ router.delete('/:id', requireEmployee, async (req, res) => {
         return res.json({ success: true });
       }
     }
-    res.json({ success: true });
+    res.json({ success: false, message: 'Product not found' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/inventory/:id/delete — same as DELETE but uses POST for reliability
+router.post('/:id/delete', requireEmployee, async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!db) return res.json({ success: true });
+    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'];
+    for (const cat of categories) {
+      const snap = await db.ref(`inventory/${cat}/${id}`).once('value');
+      if (snap.exists()) {
+        await db.ref(`inventory/${cat}/${id}`).remove();
+        return res.json({ success: true });
+      }
+    }
+    res.json({ success: false, message: 'Product not found' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
