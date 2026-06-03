@@ -553,8 +553,8 @@
             }
           }
 
-          // Super admin: view only, no add entity, show tax settings
-          if (user.role === 'super_admin' || user.role === 'admin') {
+          // Super admin only: view only, no add entity, show tax settings
+          if (user.role === 'super_admin') {
             document.getElementById('addEntityBtn').style.display = 'none';
             document.getElementById('taxSettingsCard').style.display = 'block';
             loadTaxes();
