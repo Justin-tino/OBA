@@ -145,24 +145,28 @@
           <div class="biz-cat-name">Rental</div>
           <div class="biz-cat-count">0 business units</div>
           <div class="biz-cat-revenue" style="color:#6B3FA0">₱0</div>
+          <div class="biz-cat-tax" style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Tax: <span id="tax_RENTAL">—</span></div>
         </div>
         <div class="biz-cat-card" onclick="location.href='/admin/business?cat=BUSINESS'">
           <div class="cat-stripe" style="background:#2d6a2e"></div>
           <div class="biz-cat-name">Business</div>
           <div class="biz-cat-count">0 business units</div>
           <div class="biz-cat-revenue" style="color:#2d6a2e">₱0</div>
+          <div class="biz-cat-tax" style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Tax: <span id="tax_BUSINESS">—</span></div>
         </div>
         <div class="biz-cat-card" onclick="location.href='/admin/business?cat=AGRI'">
           <div class="cat-stripe" style="background:#D4A915"></div>
           <div class="biz-cat-name">Agriculture</div>
           <div class="biz-cat-count">0 business units</div>
           <div class="biz-cat-revenue" style="color:#D4A915">₱0</div>
+          <div class="biz-cat-tax" style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Tax: <span id="tax_AGRI">—</span></div>
         </div>
         <div class="biz-cat-card" onclick="location.href='/admin/business?cat=NON_AGRI'">
           <div class="cat-stripe" style="background:#1A1A1A"></div>
           <div class="biz-cat-name">Non-Agriculture</div>
           <div class="biz-cat-count">0 business units</div>
           <div class="biz-cat-revenue" style="color:#1A1A1A">₱0</div>
+          <div class="biz-cat-tax" style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Tax: <span id="tax_NON_AGRI">—</span></div>
         </div>
       </div>
 
@@ -495,8 +499,21 @@ async function loadKPI() {
   renderSalesChart();
 }
 
+async function loadTaxRates() {
+  try {
+    const res = await API.get('/api/admin/taxes');
+    if (res.success && res.data) {
+      CATS.forEach(cat => {
+        const el = document.getElementById('tax_' + cat);
+        if (el) el.textContent = (res.data[cat] !== undefined ? res.data[cat] : 0) + '%';
+      });
+    }
+  } catch (e) { /* silent */ }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadKPI();
+  loadTaxRates();
   getCurrentUser().then(user => {
     if (user) {
       document.getElementById('sidebarName').textContent = user.name;
