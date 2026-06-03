@@ -82,6 +82,7 @@
     <div class="form-group"><label class="form-label">Supplier</label><input id="p_supplier" class="form-control" placeholder="Supplier name"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-outline btn-sm" id="deleteInEditBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteProduct(document.getElementById('p_id').value)"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
       <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
     </div>
   </div>
@@ -157,7 +158,6 @@ function renderTable() {
         <td class="table-actions">
           <button class="btn btn-outline btn-sm" title="QR Code" onclick="showQRCode('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${(p.category||'').replace(/'/g, "\\'")}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm14 0h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zm-4 0h2v2h-2zm0-4h2v2h-2zm2 2h2v2h-2z"/></svg></button>
           <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-          <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteProduct('${p.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
         </td>
       </tr>`;
     }).join('')}
@@ -175,6 +175,7 @@ function openAdd() {
   document.getElementById('p_cost').value = '';
   document.getElementById('p_price').value = '';
   document.getElementById('p_supplier').value = '';
+  document.getElementById('deleteInEditBtn').style.display = 'none';
   openModal('productModal');
 }
 
@@ -191,6 +192,7 @@ function editProduct(id) {
   document.getElementById('p_cost').value = p.unitCost || '';
   document.getElementById('p_price').value = p.sellingPrice || '';
   document.getElementById('p_supplier').value = p.supplier || '';
+  document.getElementById('deleteInEditBtn').style.display = 'inline-flex';
   openModal('productModal');
 }
 
