@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/print.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .welcome-card { background: var(--white); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 20px; border: 1px solid var(--gray-200); }
+    .welcome-card h2 { font-size: 1.4rem; margin-bottom: 4px; }
+    .welcome-card p { font-size: 0.9rem; color: var(--gray-600); margin: 0; }
+    .kpi-card .kpi-icon-box { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; position: absolute; top: 18px; right: 18px; }
+    .kpi-card .kpi-sub { font-size: 0.75rem; color: var(--gray-400); margin-top: 2px; }
+    .kpi-card.yellow .kpi-icon-box { background: var(--yellow-light); color: var(--yellow-dark); }
+    .kpi-card.green .kpi-icon-box { background: var(--green-light); color: var(--green); }
+    .kpi-card.danger .kpi-icon-box { background: var(--danger-light); color: var(--danger); }
+    .kpi-card.black .kpi-icon-box { background: var(--gray-100); color: var(--black); }
+    .chart-section { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .low-stock-list { max-height: 300px; overflow-y: auto; }
+    .low-stock-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
+    .low-stock-item:last-child { border-bottom: none; }
+    .low-stock-name { font-size: 0.88rem; font-weight: 600; }
+    .low-stock-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; }
+    .low-stock-badge.low { background: #FFF3CD; color: #856404; }
+    .low-stock-badge.critical { background: #FFCCCC; color: #CC0000; }
+    .low-stock-badge.out { background: var(--danger-light); color: var(--danger); }
+    .top-product-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--gray-200); }
+    .top-product-item:last-child { border-bottom: none; }
+    .top-product-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800; }
+    .top-product-rank.gold { background: #FFD700; color: #000; }
+    .top-product-rank.silver { background: #C0C0C0; color: #000; }
+    .top-product-rank.bronze { background: #CD7F32; color: #fff; }
+    .top-product-rank.default { background: var(--gray-200); color: var(--gray-600); }
+    .bottom-section { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+    .biz-compare-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
+    .biz-compare-item:last-child { border-bottom: none; }
+    .biz-compare-bar { height: 8px; border-radius: 4px; flex: 1; background: var(--gray-100); overflow: hidden; }
+    .biz-compare-bar .fill { height: 100%; border-radius: 4px; }
+    @media (max-width: 1024px) { .chart-section, .bottom-section { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="/admin/dashboard"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+      <a class="nav-item" href="/admin/business"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg></span> Business</a>
+      <a class="nav-item" href="/admin/inventory"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+      <a class="nav-item" href="/admin/sales"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+      <a class="nav-item" href="/admin/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+      <a class="nav-item" href="/admin/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
+      <a class="nav-item" href="/admin/users"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Users</a>
+      <a class="nav-item" href="/admin/settings"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Settings</a>
+      <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">A</div>
+        <div>
+          <div class="sidebar-user-name" id="sidebarName">Loading...</div>
+          <div class="sidebar-user-role">Logged in as:</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Dashboard</span>
+      </div>
+      <div class="topbar-actions" style="display:flex;align-items:center;gap:12px">
+        <!-- Notification Bell -->
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" id="notifCount" style="display:none">0</span>
+          <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <button class="profile-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Profile</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Welcome -->
+      <div class="welcome-card">
+        <h2>Welcome back!</h2>
+        <p>Centralized Monitoring View — All 4 Business Categories</p>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="filters-bar" style="margin-bottom:20px">
+        <div class="filter-item"><div class="filter-label">Date From</div><input type="date" id="fDateFrom" class="filter-control"></div>
+        <div class="filter-item"><div class="filter-label">Date To</div><input type="date" id="fDateTo" class="filter-control"></div>
+        <div class="filter-item"><div class="filter-label">Business Unit</div>
+          <select id="fBizUnit" class="filter-control"><option value="">All Categories</option><option value="RENTAL">Rental</option><option value="BUSINESS">Business</option><option value="AGRI">Agriculture</option><option value="NON_AGRI">Non-Agriculture</option></select>
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:18px" onclick="loadKPI()">Apply Filter</button>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpiGrid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 20px;">
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-value" id="totalRevenue">₱0</div>
+          <div class="kpi-sub">All Categories Combined</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Top Performing</div>
+          <div class="kpi-value" id="topBiz" style="font-size:1.3rem;color:#2d6a2e">—</div>
+          <div class="kpi-sub" id="topBizRev">No data yet</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        </div>
+        <div class="kpi-card" style="border-color:var(--gray-300);">
+          <div class="kpi-label">Lowest Selling Product</div>
+          <div class="kpi-value" id="lowSellProd" style="font-size:1rem;color:var(--gray-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+          <div class="kpi-sub" id="lowSellQty">0 sold</div>
+          <div class="kpi-icon-box" style="background:var(--gray-100);color:var(--gray-500)"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+        </div>
+        <div class="kpi-card danger">
+          <div class="kpi-label">Low Stock Items</div>
+          <div class="kpi-value" id="lowStockCount" style="color:var(--danger)">0</div>
+          <div class="kpi-sub">Across All Businesses</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        </div>
+        <div class="kpi-card black">
+          <div class="kpi-label">Total Net Profit</div>
+          <div class="kpi-value" id="netProfit">₱0</div>
+          <div class="kpi-sub">0.0% Margin</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Business Category Performance Cards -->
+      <div class="biz-cat-grid" id="bizCatGrid">
+        <div class="biz-cat-card" onclick="location.href='/admin/business?cat=RENTAL'">
+          <div class="cat-stripe" style="background:#6B3FA0"></div>
+          <div class="biz-cat-name">Rental</div>
+          <div class="biz-cat-count">0 business units</div>
+          <div class="biz-cat-revenue" style="color:#6B3FA0">₱0</div>
+        </div>
+        <div class="biz-cat-card" onclick="location.href='/admin/business?cat=BUSINESS'">
+          <div class="cat-stripe" style="background:#2d6a2e"></div>
+          <div class="biz-cat-name">Business</div>
+          <div class="biz-cat-count">0 business units</div>
+          <div class="biz-cat-revenue" style="color:#2d6a2e">₱0</div>
+        </div>
+        <div class="biz-cat-card" onclick="location.href='/admin/business?cat=AGRI'">
+          <div class="cat-stripe" style="background:#D4A915"></div>
+          <div class="biz-cat-name">Agriculture</div>
+          <div class="biz-cat-count">0 business units</div>
+          <div class="biz-cat-revenue" style="color:#D4A915">₱0</div>
+        </div>
+        <div class="biz-cat-card" onclick="location.href='/admin/business?cat=NON_AGRI'">
+          <div class="cat-stripe" style="background:#1A1A1A"></div>
+          <div class="biz-cat-name">Non-Agriculture</div>
+          <div class="biz-cat-count">0 business units</div>
+          <div class="biz-cat-revenue" style="color:#1A1A1A">₱0</div>
+        </div>
+      </div>
+
+      <!-- Charts + Low Stock Alerts -->
+      <div class="chart-section">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Revenue by Category</span>
+            <select class="filter-control" id="chartPeriod" onchange="loadKPI()" style="font-size:0.8rem;padding:5px 10px">
+              <option value="week" selected>This Week</option><option value="month">This Month</option><option value="year">This Year</option>
+            </select>
+          </div>
+          <div style="position: relative; height: 250px; width: 100%;">
+            <canvas id="salesChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Low Stock Alert</span>
+          </div>
+          <div class="low-stock-list" id="lowStockList"></div>
+        </div>
+      </div>
+
+      <!-- Financial Comparison + Top Products -->
+      <div class="bottom-section">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Financial Comparison Across Businesses</span></div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Category</th><th>Revenue</th><th>Expenses</th><th>Profit</th><th>Margin</th></tr></thead>
+            <tbody id="comparisonBody"></tbody></table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Top Selling Products</span></div>
+          <div id="topProductsList"></div>
+        </div>
+      </div>
+
+      <!-- Bottom Selling Products -->
+      <div class="bottom-section" style="margin-top:20px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Lowest Selling Products</span></div>
+          <div id="lowProductsList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Product Innovation Suggestions</span></div>
+          <div id="innovationList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const CATS = ['RENTAL','BUSINESS','AGRI','NON_AGRI'];
+const CAT_NAMES = { RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture' };
+const CAT_COLORS = { RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A' };
+const CAT_COLORS_LIGHT = { RENTAL:'#B39DDB', BUSINESS:'#81C784', AGRI:'#FFE082', NON_AGRI:'#757575' };
+let salesChart;
+let allData = { sales:{}, expenses:{}, inventory:{} };
+
+async function fetchAllData() {
+  const filter = document.getElementById('fBizUnit').value;
+  const cats = filter ? [filter] : CATS;
+  for (const cat of CATS) {
+    allData.sales[cat] = []; allData.expenses[cat] = []; allData.inventory[cat] = [];
+  }
+  const promises = [];
+  for (const cat of cats) {
+    promises.push(API.get('/api/sales?biz=' + cat).then(r => { if(r.success) allData.sales[cat] = r.data || []; }).catch(()=>{}));
+    promises.push(API.get('/api/expenses?biz=' + cat).then(r => { if(r.success) allData.expenses[cat] = r.data || []; }).catch(()=>{}));
+    promises.push(API.get('/api/inventory?biz=' + cat).then(r => { if(r.success) allData.inventory[cat] = r.data || []; }).catch(()=>{}));
+  }
+  await Promise.all(promises);
+}
+
+function filterByDate(list) {
+  const dFrom = document.getElementById('fDateFrom').value;
+  const dTo = document.getElementById('fDateTo').value;
+  if (!dFrom && !dTo) return list;
+  return list.filter(item => {
+    const itemDateStr = item.date || item.createdAt;
+    if (!itemDateStr) return true;
+    const d = new Date(itemDateStr);
+    if (isNaN(d)) return true;
+    let keep = true;
+    if (dFrom) keep = keep && d >= new Date(dFrom);
+    if (dTo) {
+      const toEnd = new Date(dTo);
+      toEnd.setHours(23, 59, 59, 999);
+      keep = keep && d <= toEnd;
+    }
+    return keep;
+  });
+}
+
+function computeKPIs() {
+  const filter = document.getElementById('fBizUnit').value;
+  const cats = filter ? [filter] : CATS;
+  let totalRevenue = 0, totalExpenses = 0, lowStockCount = 0;
+  const catRevenue = {};
+
+  cats.forEach(cat => {
+    const fSales = filterByDate(allData.sales[cat]||[]);
+    const fExpenses = filterByDate(allData.expenses[cat]||[]);
+    const salesRev = fSales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const incomeRev = fExpenses.filter(e => e.type==='income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    const expTotal = fExpenses.filter(e => e.type==='expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    const inv = allData.inventory[cat]||[];
+    const low = inv.filter(p => {
+      const qty = parseInt(p.quantity||p.stock||0);
+      const reorder = parseInt(p.reorderLevel||10);
+      return qty <= reorder;
+    });
+    catRevenue[cat] = salesRev + incomeRev;
+    totalRevenue += salesRev + incomeRev;
+    totalExpenses += expTotal;
+    lowStockCount += low.length;
+  });
+
+  const netProfit = totalRevenue - totalExpenses;
+  const margin = totalRevenue > 0 ? ((netProfit/totalRevenue)*100).toFixed(1) : '0.0';
+
+  document.getElementById('totalRevenue').innerHTML = '&#8369;' + totalRevenue.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('lowStockCount').textContent = lowStockCount;
+  document.getElementById('netProfit').innerHTML = '&#8369;' + netProfit.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('netProfit').style.color = netProfit >= 0 ? 'var(--green)' : 'var(--danger)';
+  document.querySelector('#netProfit + .kpi-sub').textContent = margin + '% Margin';
+
+  // Top performing category
+  let topCat = null, topVal = 0;
+  Object.entries(catRevenue).forEach(([cat, val]) => { if(val > topVal) { topVal = val; topCat = cat; } });
+  document.getElementById('topBiz').textContent = topCat ? CAT_NAMES[topCat] : '—';
+  document.getElementById('topBizRev').textContent = topCat ? '&#8369;' + topVal.toLocaleString('en',{minimumFractionDigits:2}) : 'No data yet';
+  if(topCat) document.getElementById('topBiz').style.color = CAT_COLORS[topCat];
+
+  // Update category cards
+  CATS.forEach(cat => {
+    const cards = document.querySelectorAll('.biz-cat-card');
+    const idx = CATS.indexOf(cat);
+    if(cards[idx]) {
+      const rev = catRevenue[cat] || 0;
+      const unitCount = (allData.inventory[cat]||[]).length;
+      cards[idx].querySelector('.biz-cat-count').textContent = unitCount + ' products';
+      cards[idx].querySelector('.biz-cat-revenue').innerHTML = '&#8369;' + rev.toLocaleString('en',{minimumFractionDigits:2});
+    }
+  });
+
+  // Lowest Selling Product Logic
+  const productSales = {};
+  cats.forEach(cat => {
+    const fSales = filterByDate(allData.sales[cat]||[]);
+    fSales.forEach(sale => {
+      if (sale.items && Array.isArray(sale.items)) {
+        sale.items.forEach(i => {
+          if (!productSales[i.name]) productSales[i.name] = 0;
+          productSales[i.name] += parseInt(i.quantity || i.qty || 1);
+        });
+      }
+    });
+  });
+  
+  let lowestProd = null;
+  let lowestQty = Infinity;
+  Object.keys(productSales).forEach(name => {
+    if (productSales[name] < lowestQty) {
+      lowestQty = productSales[name];
+      lowestProd = name;
+    }
+  });
+  
+  if (lowestProd) {
+    document.getElementById('lowSellProd').textContent = lowestProd;
+    document.getElementById('lowSellQty').textContent = `Only ${lowestQty} units sold`;
+  } else {
+    document.getElementById('lowSellProd').textContent = '—';
+    document.getElementById('lowSellQty').textContent = 'No sales data';
+  }
+}
+
+function renderLowStock() {
+  const el = document.getElementById('lowStockList');
+  const items = [];
+  CATS.forEach(cat => {
+    (allData.inventory[cat]||[]).forEach(p => {
+      const qty = parseInt(p.quantity||p.stock||0);
+      const reorder = parseInt(p.reorderLevel||10);
+      if(qty <= reorder) {
+        let status='low', badge='Low Stock';
+        if(qty === 0) { status='out'; badge='Out of Stock'; }
+        else if(qty <= Math.floor(reorder/2)) { status='critical'; badge='Critical'; }
+        items.push({ name: p.name, biz: CAT_NAMES[cat], status, badge, qty });
+      }
+    });
+  });
+  if(!items.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:30px 10px"><h3>No alerts</h3><p>All stock levels are healthy</p></div>';
+    return;
+  }
+  el.innerHTML = items.map(item => `
+    <div class="low-stock-item">
+      <div><span class="low-stock-name">${item.name}</span><br><small style="color:var(--gray-400)">${item.biz} — Qty: ${item.qty}</small></div>
+      <span class="low-stock-badge ${item.status}">${item.badge}</span>
+    </div>`).join('');
+}
+
+function renderTopProducts() {
+  const el = document.getElementById('topProductsList');
+  const productMap = {};
+  CATS.forEach(cat => {
+    const fSales = filterByDate(allData.sales[cat]||[]);
+    fSales.forEach(s => {
+      (s.items||[]).forEach(i => {
+        const key = i.name||'Unknown';
+        if(!productMap[key]) productMap[key] = { name:key, qty:0, revenue:0 };
+        productMap[key].qty += parseInt(i.quantity||i.qty||1);
+        productMap[key].revenue += parseFloat(i.subtotal||i.unitPrice||0);
+      });
+    });
+  });
+  const sorted = Object.values(productMap).sort((a,b) => b.revenue - a.revenue).slice(0,5);
+  if(!sorted.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:30px 10px"><h3>No sales yet</h3><p>Start recording sales to see top products</p></div>';
+    return;
+  }
+  const rankColors = ['gold','silver','bronze','default','default'];
+  el.innerHTML = sorted.map((p,i) => `
+    <div class="top-product-item">
+      <div class="top-product-rank ${rankColors[i]}">${i+1}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:0.9rem">${p.name}</div><small style="color:var(--gray-400)">${p.qty} sold</small></div>
+      <div style="font-weight:700;font-size:0.88rem">&#8369;${p.revenue.toLocaleString('en',{minimumFractionDigits:2})}</div>
+    </div>`).join('');
+
+  // Render Bottom 5 Low Selling Products
+  renderLowProducts(productMap);
+}
+
+function renderLowProducts(productMap) {
+  const el = document.getElementById('lowProductsList');
+  const innovEl = document.getElementById('innovationList');
+  const products = Object.values(productMap || {});
+  const bottom5 = products.sort((a,b) => a.qty - b.qty).slice(0,5);
+  if(!bottom5.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:30px 10px"><h3>No data</h3><p>Start recording sales to see underperforming products</p></div>';
+    innovEl.innerHTML = '<div class="empty-state" style="padding:30px 10px"><h3>No suggestions yet</h3><p>Data needed to generate innovation insights</p></div>';
+    return;
+  }
+  el.innerHTML = bottom5.map((p,i) => `
+    <div class="top-product-item">
+      <div class="top-product-rank" style="background:var(--danger-light);color:var(--danger)">${i+1}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:0.9rem">${p.name}</div><small style="color:var(--gray-400)">Only ${p.qty} sold</small></div>
+      <div style="font-weight:700;font-size:0.82rem;color:var(--danger)">&#8369;${p.revenue.toLocaleString('en',{minimumFractionDigits:2})}</div>
+    </div>`).join('');
+
+  // Innovation suggestions based on low selling
+  innovEl.innerHTML = bottom5.map(p => `
+    <div style="display:flex;align-items:start;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-200)">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--yellow-light);color:var(--yellow-dark);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.8rem">💡</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:0.85rem">${p.name}</div>
+        <div style="font-size:0.78rem;color:var(--gray-500);line-height:1.4">Only ${p.qty} unit(s) sold. Consider: price adjustment, bundling with top sellers, promotional campaigns, or product re-evaluation.</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderComparison() {
+  const el = document.getElementById('comparisonBody');
+  const rows = [];
+  let totalR=0, totalE=0, totalP=0;
+  CATS.forEach(cat => {
+    const fSales = filterByDate(allData.sales[cat]||[]);
+    const fExpenses = filterByDate(allData.expenses[cat]||[]);
+    const salesRev = fSales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const incomeRev = fExpenses.filter(e => e.type==='income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    const expTotal = fExpenses.filter(e => e.type==='expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    const rev = salesRev + incomeRev;
+    const profit = rev - expTotal;
+    const margin = rev > 0 ? ((profit/rev)*100).toFixed(1)+'%' : '0.0%';
+    rows.push({ category: CAT_NAMES[cat], revenue: rev, expenses: expTotal, profit, margin });
+    totalR += rev; totalE += expTotal; totalP += profit;
+  });
+  if(totalR === 0 && totalE === 0) {
+    el.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--gray-400)">No financial data yet</td></tr>';
+    return;
+  }
+  const totalMargin = totalR > 0 ? ((totalP/totalR)*100).toFixed(1)+'%' : '0.0%';
+  el.innerHTML = rows.map(c => `
+    <tr><td class="fw-bold">${c.category}</td><td>&#8369;${c.revenue.toLocaleString('en',{minimumFractionDigits:2})}</td><td>&#8369;${c.expenses.toLocaleString('en',{minimumFractionDigits:2})}</td>
+    <td class="fw-bold" style="color:${c.profit>=0?'var(--green)':'var(--danger)'}">&#8369;${c.profit.toLocaleString('en',{minimumFractionDigits:2})}</td><td>${c.margin}</td></tr>`).join('') +
+    `<tr style="border-top:2px solid var(--black);font-weight:800"><td>TOTAL</td><td>&#8369;${totalR.toLocaleString('en',{minimumFractionDigits:2})}</td><td>&#8369;${totalE.toLocaleString('en',{minimumFractionDigits:2})}</td><td style="color:${totalP>=0?'var(--green)':'var(--danger)'}">&#8369;${totalP.toLocaleString('en',{minimumFractionDigits:2})}</td><td>${totalMargin}</td></tr>`;
+}
+
+function renderSalesChart() {
+  const ctx = document.getElementById('salesChart');
+  if (salesChart) salesChart.destroy();
+  const revData = CATS.map(cat => {
+    const fSales = filterByDate(allData.sales[cat]||[]);
+    const fExpenses = filterByDate(allData.expenses[cat]||[]);
+    const salesRev = fSales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const incomeRev = fExpenses.filter(e => e.type==='income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    return salesRev + incomeRev;
+  });
+  const expData = CATS.map(cat => {
+    const fExpenses = filterByDate(allData.expenses[cat]||[]);
+    return fExpenses.filter(e => e.type==='expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+  });
+  salesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Rental', 'Business', 'Agriculture', 'Non-Agri'],
+      datasets: [
+        { label: 'Revenue', data: revData, backgroundColor: Object.values(CAT_COLORS), borderRadius: 6 },
+        { label: 'Expenses', data: expData, backgroundColor: Object.values(CAT_COLORS_LIGHT), borderRadius: 6 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+      scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+    }
+  });
+}
+
+async function loadKPI() {
+  await fetchAllData();
+  computeKPIs();
+  renderLowStock();
+  renderTopProducts();
+  renderComparison();
+  renderSalesChart();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadKPI();
+  getCurrentUser().then(user => {
+    if (user) {
+      document.getElementById('sidebarName').textContent = user.name;
+      document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(user.role);
+      document.getElementById('sidebarAvatar').textContent = user.name.charAt(0).toUpperCase();
+      // Viewer role enforcement — only show Dashboard, Business (Inventory), Sales, Logout
+      if (user.role === 'viewer') {
+        document.querySelectorAll('.sidebar-nav a').forEach(a => {
+          const href = a.getAttribute('href') || '';
+          const keepLinks = ['/admin/dashboard', '/admin/business', '/admin/inventory', '/admin/sales', '/admin/reports', '/logout'];
+          if (!keepLinks.some(k => href.includes(k))) {
+            a.style.display = 'none';
+          }
+        });
+        // Hide action buttons, disable form submissions for view-only
+        document.querySelectorAll('.btn-primary, .btn-success, .btn-danger').forEach(btn => {
+          if (!btn.classList.contains('btn-sm')) return; // keep filter button
+        });
+        const topbar = document.querySelector('.topbar');
+        if (topbar) {
+          const badge = document.createElement('span');
+          badge.textContent = 'VIEW ONLY';
+          badge.style.cssText = 'background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:12px;font-size:0.72rem;font-weight:700;letter-spacing:0.5px;margin-left:12px';
+          topbar.querySelector('.flex-c').appendChild(badge);
+        }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

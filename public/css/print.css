@@ -1,0 +1,90 @@
+/* ================================================================
+   OBA System — Print Stylesheet
+   Applied automatically when browser printing is triggered
+   ================================================================ */
+
+@media print {
+  /* Hide everything that shouldn't print */
+  .sidebar, .topbar, .topbar-actions, .page-header-actions,
+  .btn:not(.btn-print-show), .filters-bar, .modal-overlay,
+  .toast-container, .table-actions, .nav-item,
+  .sidebar-footer, .biz-card-alert, no-print { display: none !important; }
+
+  /* Page setup */
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm 20mm 15mm;
+  }
+
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    background: #fff;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 11pt;
+    color: #000;
+  }
+
+  .main-content { margin-left: 0 !important; }
+  .page-content { padding: 0 !important; }
+
+  /* Report header */
+  .print-header {
+    text-align: center;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #1A1A1A;
+    margin-bottom: 18px;
+  }
+  .print-header .print-logo { font-size: 18pt; font-weight: 800; color: #1A1A1A; }
+  .print-header .print-subtitle { font-size: 10pt; color: #555; margin-top: 2px; }
+  .print-header .print-meta { font-size: 9pt; color: #888; margin-top: 6px; }
+  .print-title { font-size: 14pt; font-weight: 700; text-align: center; margin: 12px 0 20px; }
+
+  /* Tables */
+  table { border-collapse: collapse; width: 100%; }
+  thead th {
+    background: #1A1A1A !important;
+    color: #fff !important;
+    padding: 8px 10px;
+    font-size: 9pt;
+    border: 1px solid #ccc;
+  }
+  tbody td {
+    padding: 7px 10px;
+    font-size: 10pt;
+    border: 1px solid #ddd;
+  }
+  tbody tr:nth-child(even) { background: #f9f9f9; }
+
+  /* KPI summary in reports */
+  .print-kpi-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .print-kpi-box {
+    flex: 1;
+    border: 1px solid #ddd;
+    padding: 10px 14px;
+    border-radius: 6px;
+    text-align: center;
+  }
+  .print-kpi-box .val { font-size: 14pt; font-weight: 800; }
+  .print-kpi-box .lbl { font-size: 8pt; color: #888; }
+
+  /* Signature block */
+  .print-sig {
+    margin-top: 40px;
+    display: flex;
+    gap: 60px;
+  }
+  .print-sig-item { flex: 1; }
+  .print-sig-line { border-top: 1px solid #000; padding-top: 6px; margin-top: 40px; font-size: 9pt; }
+
+  /* Cards */
+  .card { box-shadow: none !important; border: 1px solid #ddd; }
+
+  /* Page break */
+  .page-break { page-break-after: always; }
+  .no-break { page-break-inside: avoid; }
+}

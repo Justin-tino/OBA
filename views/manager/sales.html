@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .sale-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .sale-toolbar .search-box { flex: 1; max-width: 320px; }
+    .receipt-preview { border: 1px solid var(--gray-200); padding: 24px; border-radius: var(--radius); background: #fff; font-family: 'Courier New', monospace; font-size: 0.8rem; max-width: 320px; margin: 0 auto; }
+    .receipt-preview .rp-header { text-align: center; border-bottom: 1px dashed var(--gray-300); padding-bottom: 10px; margin-bottom: 10px; }
+    @media print { .no-print { display: none !important; } .main-content { margin: 0; padding: 0; } }
+    .filter-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav" id="mgrNav"></nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">M</div>
+        <div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar" style="background-color: var(--primary)">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title" id="topbarTitle">Sales</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" id="notifCount" style="display:none">0</span>
+          <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <button class="profile-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Profile</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+        <div class="kpi-card yellow"><div class="kpi-label">Total Revenue</div><div class="kpi-value" id="kpiRevenue">&#8369;0</div></div>
+        <div class="kpi-card green"><div class="kpi-label">Total Transactions</div><div class="kpi-value" id="kpiTransactions">0</div></div>
+        <div class="kpi-card black"><div class="kpi-label">Average per Sale</div><div class="kpi-value" id="kpiAvg">&#8369;0</div></div>
+      </div>
+
+      <div class="card">
+        <div class="sale-toolbar">
+          <div class="filter-row">
+            <div class="search-box">
+              <input id="fSearch" class="form-control" placeholder="Search by product name..." oninput="renderSales()">
+            </div>
+            <input id="fDate" type="date" class="form-control" style="width:160px" onchange="renderSales()">
+          </div>
+          <button class="btn btn-primary no-print" onclick="openModal('saleModal')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Record Sale</button>
+        </div>
+        <div id="salesTable">
+          <div class="empty-state"><h3>No sales recorded</h3></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="saleModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><h3>Record Sale</h3><button class="modal-close" onclick="closeModal('saleModal')">&times;</button></div>
+    <div class="form-group"><label class="form-label">Select Product</label>
+      <select id="s_product" class="form-control" onchange="updatePrice()">
+        <option value="">-- Select --</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantity</label><input id="s_qty" type="number" class="form-control" value="1" min="1"></div>
+      <div class="form-group"><label class="form-label">Unit Price (&#8369;)</label><input id="s_price" type="number" class="form-control" step="0.01"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Payment Method</label>
+      <select id="s_payment" class="form-control"><option value="cash">Cash</option><option value="gcash">GCash</option><option value="card">Card</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><input id="s_notes" class="form-control" placeholder="Optional notes"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('saleModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="recordSale()">Record Sale</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let BIZ = 'RENTAL';
+let sales = [];
+
+function buildNav() {
+  document.getElementById('mgrNav').innerHTML = `
+    <a class="nav-item" href="/manager/dashboard"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+    <a class="nav-item" href="/manager/inventory"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+    <a class="nav-item active" href="/manager/sales"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+    <a class="nav-item" href="/manager/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+    <a class="nav-item" href="/manager/employees"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Employees</a>
+    <a class="nav-item" href="/manager/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
+    <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+  `;
+}
+
+async function loadData() {
+  try {
+    const res = await API.get('/api/sales?biz=' + BIZ);
+    if (res.success) {
+      sales = res.data || [];
+      renderSales();
+      updateKPIs();
+    }
+  } catch(e) { /* skip */ }
+}
+
+function updateKPIs() {
+  const total = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+  document.getElementById('kpiRevenue').innerHTML = '&#8369;' + total.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('kpiTransactions').textContent = sales.length;
+  const avg = sales.length > 0 ? total / sales.length : 0;
+  document.getElementById('kpiAvg').innerHTML = '&#8369;' + avg.toLocaleString('en',{minimumFractionDigits:2});
+}
+
+function renderSales() {
+  const search = document.getElementById('fSearch').value.toLowerCase();
+  const dateFilter = document.getElementById('fDate').value;
+  let list = sales;
+  if (search) list = list.filter(s => (s.items||[]).some(i => (i.name||'').toLowerCase().includes(search)));
+  if (dateFilter) list = list.filter(s => (s.date||s.createdAt||'').startsWith(dateFilter));
+  const el = document.getElementById('salesTable');
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><h3>No sales found</h3></div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Date</th><th>Items</th><th>Payment</th><th>Total</th><th>Recorded By</th></tr></thead><tbody>
+    ${list.map(s => `<tr>
+      <td>${new Date(s.date||s.createdAt).toLocaleDateString()}</td>
+      <td>${(s.items||[]).map(i => i.name).join(', ')||'—'}</td>
+      <td><span class="stock-badge in-stock">${s.paymentMethod||'cash'}</span></td>
+      <td class="fw-bold">&#8369;${parseFloat(s.total||0).toLocaleString('en',{minimumFractionDigits:2})}</td>
+      <td style="font-size:0.82rem">${s.recordedByName||'—'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+async function loadProducts() {
+  try {
+    const res = await API.get('/api/inventory?biz=' + BIZ);
+    if (res.success) {
+      const sel = document.getElementById('s_product');
+      sel.innerHTML = '<option value="">-- Select --</option>' + (res.data||[]).map(p =>
+        `<option value="${p.id}" data-price="${p.sellingPrice||0}" data-qty="${p.quantity||0}">${p.name} (Stock: ${p.quantity||0})</option>`
+      ).join('');
+    }
+  } catch(e) { /* skip */ }
+}
+
+function updatePrice() {
+  const sel = document.getElementById('s_product');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.value) {
+    document.getElementById('s_price').value = opt.getAttribute('data-price') || 0;
+  }
+}
+
+async function recordSale() {
+  const productEl = document.getElementById('s_product');
+  const productId = productEl.value;
+  const productName = productEl.options[productEl.selectedIndex]?.text.split(' (')[0] || '';
+  const qty = parseInt(document.getElementById('s_qty').value) || 1;
+  const price = parseFloat(document.getElementById('s_price').value) || 0;
+  const payment = document.getElementById('s_payment').value;
+  const notes = document.getElementById('s_notes').value.trim();
+  if (!productId) { Toast.warning('Please select a product'); return; }
+  if (qty < 1) { Toast.warning('Quantity must be at least 1'); return; }
+  if (price <= 0) { Toast.warning('Invalid price'); return; }
+  try {
+    const res = await API.post('/api/sales', {
+      items: [{ id: productId, name: productName, quantity: qty, unitPrice: price, subtotal: price * qty }],
+      total: price * qty,
+      paymentMethod: payment,
+      notes,
+      businessCategory: BIZ,
+    });
+    if (res.success) {
+      Toast.success('Sale recorded!');
+      closeModal('saleModal');
+      loadData();
+    } else {
+      Toast.error(res.message);
+    }
+  } catch(e) { Toast.error('Failed to record sale'); }
+}
+
+async function initPage() {
+  buildNav();
+  loadProducts();
+  const u = await getCurrentUser();
+  if (u) {
+    const bizAccess = u.businessAccess || [];
+    BIZ = bizAccess.includes('all') ? 'RENTAL' : (bizAccess[0] || 'RENTAL');
+    document.getElementById('sidebarName').textContent = u.name;
+    document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role);
+    document.getElementById('sidebarAvatar').textContent = u.name.charAt(0).toUpperCase();
+  }
+  document.getElementById('topbarTitle').textContent = BIZ + ' - Sales';
+  loadData();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>

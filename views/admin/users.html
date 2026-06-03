@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .sidebar-logo-area { display: flex; flex-direction: column; align-items: center; padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo-area .org-name { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.7); text-align: center; line-height: 1.4; }
+    .sidebar-nav .nav-item.active { background: linear-gradient(90deg, #3a8c3b, #2d6a2e); color: var(--white); border-left-color: var(--white); }
+    .topbar-green { background: linear-gradient(90deg, #2d6a2e, #3a8c3b); color: var(--white); }
+    .topbar-green .topbar-title { color: var(--white); }
+    .profile-btn { background: rgba(255,255,255,0.15); border: none; color: var(--white); padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: var(--font-main); }
+
+    /* Business Category Tabs */
+    .biz-tabs { display: flex; gap: 0; margin-bottom: 20px; background: var(--white); border-radius: 10px; border: 1px solid var(--gray-200); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .biz-tab { flex: 1; padding: 14px 16px; text-align: center; font-weight: 600; font-size: 0.82rem; cursor: pointer; border-right: 1px solid var(--gray-200); transition: all 0.2s; color: var(--gray-600); background: var(--white); user-select: none; }
+    .biz-tab:last-child { border-right: none; }
+    .biz-tab:hover { background: var(--gray-50); }
+    .biz-tab.active { color: #fff; }
+    .biz-tab .count { display: inline-block; background: var(--gray-100); padding: 1px 10px; border-radius: 12px; font-size: 0.7rem; margin-left: 6px; font-weight: 700; }
+    .biz-tab.active .count { background: rgba(255,255,255,0.25); color: #fff; }
+
+    /* KPI Strip */
+    .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+    .kpi-strip .kp { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .kpi-strip .kp .v { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+    .kpi-strip .kp .l { font-size: 0.72rem; color: var(--gray-500); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    /* Toolbar */
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .toolbar .left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .toolbar .right { display: flex; gap: 8px; align-items: center; }
+
+    /* Role Sections */
+    .role-section { margin-bottom: 28px; }
+    .role-section:last-child { margin-bottom: 0; }
+    .role-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px 10px 0 0; border-bottom: none; }
+    .role-header .role-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem; flex-shrink: 0; }
+    .role-header h3 { margin: 0; font-size: 0.95rem; font-weight: 700; }
+    .role-header .count { font-size: 0.78rem; color: var(--gray-500); font-weight: 500; margin-left: auto; }
+
+    /* User Cards Grid */
+    .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; padding: 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 0 0 10px 10px; border-top: none; }
+
+    .user-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 18px; transition: all 0.2s; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    .user-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #d0d0d0; transform: translateY(-1px); }
+    .user-card .card-top { display: flex; align-items: start; gap: 14px; }
+    .user-card .user-avatar { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; color: #fff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .user-card .user-info { flex: 1; min-width: 0; }
+    .user-card .user-name { font-weight: 700; font-size: 0.92rem; color: var(--black); }
+    .user-card .user-email { font-size: 0.78rem; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+    .user-card .user-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+    .user-card .user-actions { display: flex; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gray-100); flex-wrap: wrap; }
+    .user-card .card-badge { position: absolute; top: 16px; right: 16px; }
+    .user-card .last-login { font-size: 0.7rem; color: var(--gray-400); margin-top: 4px; }
+    .user-card .status-dot-sm { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+    .empty-biz { text-align: center; padding: 60px 20px; color: var(--gray-400); background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; }
+    .empty-biz h3 { font-size: 1.1rem; margin-bottom: 4px; color: var(--gray-600); }
+
+    .action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700); transition: all 0.15s; font-family: inherit; }
+    .action-btn:hover { background: var(--gray-50); border-color: #bbb; }
+    .action-btn.danger { color: var(--danger); border-color: var(--danger); }
+    .action-btn.danger:hover { background: var(--danger-light); }
+    .action-btn.primary { color: var(--green); border-color: var(--green); }
+    .action-btn.primary:hover { background: var(--green-light); }
+    .action-btn svg { flex-shrink: 0; }
+
+    @media (max-width: 768px) {
+      .biz-tabs { flex-wrap: wrap; }
+      .biz-tab { flex: 1 0 50%; border-bottom: 1px solid var(--gray-200); }
+      .user-grid { grid-template-columns: 1fr; padding: 12px; }
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .toolbar .left { width: 100%; }
+      .toolbar .left input { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/admin/dashboard"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+      <a class="nav-item" href="/admin/business"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg></span> Business</a>
+      <a class="nav-item" href="/admin/inventory"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+      <a class="nav-item" href="/admin/sales"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+      <a class="nav-item" href="/admin/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+      <a class="nav-item" href="/admin/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
+      <a class="nav-item active" href="/admin/users"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Users</a>
+      <a class="nav-item" href="/admin/settings"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Settings</a>
+      <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">A</div>
+        <div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title">Manage Users</span>
+      </div>
+      <div class="topbar-actions" style="display:flex;align-items:center;gap:12px">
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" id="notifCount" style="display:none">0</span>
+          <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <button class="profile-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Profile</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- KPI Strip -->
+      <div class="kpi-strip">
+        <div class="kp"><div class="v" id="kpiTotal">0</div><div class="l">Total Accounts</div></div>
+        <div class="kp"><div class="v" id="kpiActive" style="color:var(--green)">0</div><div class="l">Active</div></div>
+        <div class="kp"><div class="v" id="kpiPending" style="color:var(--yellow-dark)">0</div><div class="l">Pending</div></div>
+        <div class="kp"><div class="v" id="kpiInactive" style="color:var(--gray-500)">0</div><div class="l">Inactive</div></div>
+        <div class="kp"><div class="v" id="kpiBiz" style="color:var(--info)">0</div><div class="l">Assigned to Business</div></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="left">
+          <input type="text" id="fSearch" class="form-control" placeholder="Search by name or email..." oninput="renderUsers()" style="width:240px;font-size:0.82rem">
+          <select id="fRole" class="form-control" onchange="renderUsers()" style="width:auto;font-size:0.82rem">
+            <option value="">All Roles</option>
+            <option value="super_admin">Super Admin</option>
+            <option value="manager">Manager</option>
+            <option value="employee">Employee</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          <select id="fStatus" class="form-control" onchange="renderUsers()" style="width:auto;font-size:0.82rem">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <div class="right">
+          <button class="btn btn-primary" onclick="openAddUser()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Account</button>
+        </div>
+      </div>
+
+      <!-- Business Tabs -->
+      <div class="biz-tabs" id="bizTabs"></div>
+
+      <!-- User Content -->
+      <div id="userContent"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit User Modal -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title" id="userModalTitle">Add User Account</span>
+      <button class="modal-close" onclick="closeModal('addUserModal')"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <input type="hidden" id="u_id">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="u_name" class="form-control" placeholder="Full Name"></div>
+      <div class="form-group"><label class="form-label">Email *</label><input type="email" id="u_email" class="form-control" placeholder="you@psau.edu.ph"></div>
+    </div>
+    <div class="form-row" id="pwRow">
+      <div class="form-group"><label class="form-label">Password *</label><input type="password" id="u_password" class="form-control" placeholder="Create password"></div>
+      <div class="form-group"><label class="form-label">Confirm Password *</label><input type="password" id="u_confirm" class="form-control" placeholder="Confirm password"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">System Role *</label>
+        <select id="u_role" class="form-control" onchange="onRoleChange()">
+          <option value="employee">Employee</option>
+          <option value="manager">Manager (Per-Business)</option>
+          <option value="viewer">Viewer (Read-only &amp; Print)</option>
+          <option value="super_admin">Super Admin (Full Access)</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select id="u_status" class="form-control">
+          <option value="active">Active</option>
+          <option value="pending">Pending (Awaiting Approval)</option>
+          <option value="inactive">Inactive</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" id="bizGroup">
+      <label class="form-label">Assigned Business Category *</label>
+      <div style="font-size:0.78rem;color:var(--gray-600);margin-bottom:8px">Select which business category this user can access and manage.</div>
+      <select id="u_businesses" class="form-control">
+        <option value="" disabled selected>— Select a category —</option>
+        <option value="RENTAL">Rental</option>
+        <option value="BUSINESS">Business</option>
+        <option value="AGRI">Agriculture</option>
+        <option value="NON_AGRI">Non-Agriculture</option>
+      </select>
+    </div>
+    <div id="bizInfoBox" style="display:none;background:var(--info-light);border:1px solid #90CDF4;border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:0.82rem;color:var(--info)"></div>
+    <div class="modal-footer" style="display:flex;justify-content:space-between;width:100%;box-sizing:border-box">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const BIZ_MAP = { RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture' };
+const BIZ_COLORS = { RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A' };
+
+const ROLE_CONFIG = {
+  super_admin: { color: '#DC3545', bg: '#FFE0E0', icon: 'SA', label: 'Super Admin' },
+  admin:       { color: '#DC3545', bg: '#FFE0E0', icon: 'SA', label: 'Super Admin' },
+  manager:     { color: '#0D6EFD', bg: '#D0E4FF', icon: 'MG', label: 'Manager' },
+  employee:    { color: '#198754', bg: '#D1F0D1', icon: 'EM', label: 'Employee' },
+  viewer:      { color: '#FF8C00', bg: '#FFE8CC', icon: 'VW', label: 'Viewer' },
+};
+
+function normRole(r) { return r === 'admin' ? 'super_admin' : r; }
+
+let users = [];
+let activeBiz = '';
+
+function getUserBiz(u) {
+  if (!u.businesses || !Array.isArray(u.businesses)) return '';
+  return u.businesses[0] === 'all' ? '' : u.businesses[0];
+}
+
+function getBizLabel(b) { return b ? (BIZ_MAP[b] || b) : 'All Categories'; }
+
+async function loadData() {
+  try {
+    const res = await API.get('/api/admin/users');
+    if (res.success) { users = (res.data || []).map(u => ({ ...u, role: normRole(u.role) })); renderAll(); }
+  } catch(e) { Toast.error('Error loading data'); }
+}
+
+function renderAll() {
+  renderTabs();
+  renderUsers();
+  updateKPIs();
+}
+
+function updateKPIs() {
+  const active = users.filter(u => u.status === 'active').length;
+  const pending = users.filter(u => u.status === 'pending').length;
+  const inactive = users.filter(u => u.status === 'inactive').length;
+  const withBiz = users.filter(u => getUserBiz(u)).length;
+  document.getElementById('kpiTotal').textContent = users.length;
+  document.getElementById('kpiActive').textContent = active;
+  document.getElementById('kpiPending').textContent = pending;
+  document.getElementById('kpiInactive').textContent = inactive;
+  document.getElementById('kpiBiz').textContent = withBiz;
+}
+
+function renderTabs() {
+  const counts = {};
+  users.forEach(u => { const b = getUserBiz(u); if (b) counts[b] = (counts[b] || 0) + 1; });
+  const tabs = [
+    { id: '', label: 'All Accounts', count: users.length, color: '#1A1A1A' },
+    ...['RENTAL','BUSINESS','AGRI','NON_AGRI'].map(id => ({
+      id, label: BIZ_MAP[id], count: counts[id] || 0, color: BIZ_COLORS[id]
+    })),
+  ];
+  document.getElementById('bizTabs').innerHTML = tabs.map(t =>
+    `<div class="biz-tab ${activeBiz === t.id ? 'active' : ''}" style="${activeBiz === t.id ? 'background:' + t.color : ''}" onclick="switchBiz('${t.id}')">
+      ${t.label} <span class="count">${t.count}</span>
+    </div>`
+  ).join('');
+}
+
+function switchBiz(biz) { activeBiz = biz; renderTabs(); renderUsers(); }
+
+function getFiltered() {
+  const s = document.getElementById('fSearch').value.toLowerCase();
+  const rf = document.getElementById('fRole').value;
+  const sf = document.getElementById('fStatus').value;
+  let list = [...users];
+  if (activeBiz) list = list.filter(u => getUserBiz(u) === activeBiz);
+  if (s) list = list.filter(u => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s));
+  if (rf) list = list.filter(u => u.role === rf);
+  if (sf) list = list.filter(u => u.status === sf);
+  return list;
+}
+
+function renderUsers() {
+  const list = getFiltered();
+  const groups = {};
+  const order = ['super_admin','manager','employee','viewer'];
+  const names = { super_admin:'Super Admin', manager:'Managers', employee:'Employees', viewer:'Viewers' };
+
+  list.forEach(u => {
+    const r = order.includes(u.role) ? u.role : 'employee';
+    if (!groups[r]) groups[r] = [];
+    groups[r].push(u);
+  });
+
+  const container = document.getElementById('userContent');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-biz"><h3>No accounts found</h3><p>${activeBiz ? 'No accounts assigned to this business category.' : 'Click "Add Account" to create the first one.'}</p></div>`;
+    return;
+  }
+
+  let html = '';
+  order.forEach(role => {
+    const grp = groups[role];
+    if (!grp || !grp.length) return;
+    const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.employee;
+    html += `<div class="role-section">
+      <div class="role-header">
+        <div class="role-icon" style="background:${cfg.color}">${cfg.icon}</div>
+        <h3 style="color:${cfg.color}">${names[role] || role}</h3>
+        <span class="count">${grp.length} account${grp.length > 1 ? 's' : ''}</span>
+      </div>
+      <div class="user-grid">
+        ${grp.map(u => renderCard(u)).join('')}
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderCard(u) {
+  const biz = getUserBiz(u);
+  const cfg = ROLE_CONFIG[u.role] || ROLE_CONFIG.employee;
+  const lastLogin = u.lastLogin && u.lastLogin !== 'Never' ? fmt.datetime(u.lastLogin) : u.lastLogin || 'Never';
+  const createdDate = u.createdAt ? fmt.date(u.createdAt) : '';
+  const isOwn = u.uid === (window._currentUser ? window._currentUser.uid : '');
+
+  const statusDots = {
+    active: '#198754', pending: '#FFC107', inactive: '#6C757D', suspended: '#DC3545'
+  };
+
+  return `<div class="user-card">
+    <div class="card-top">
+      <div class="user-avatar" style="background:${cfg.color}">${u.name.charAt(0).toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${u.name} ${isOwn ? '<span style="font-size:0.65rem;background:var(--info-light);color:var(--info);padding:1px 6px;border-radius:4px;font-weight:600">You</span>' : ''}</div>
+        <div class="user-email">${u.email}</div>
+        <div class="last-login"><span class="status-dot-sm" style="background:${statusDots[u.status] || '#999'}"></span> ${u.status} · Last login: ${lastLogin}${createdDate ? ' · Created ' + createdDate : ''}</div>
+      </div>
+      <div class="card-badge">${roleBadge(u.role)}</div>
+    </div>
+    <div class="user-meta">
+      ${statusBadge(u.status)}
+      <span class="badge" style="background:${biz ? BIZ_COLORS[biz] : '#6C757D'}18;color:${biz ? BIZ_COLORS[biz] : '#6C757D'};border:1px solid ${biz ? BIZ_COLORS[biz] : '#6C757D'}40">${biz ? BIZ_MAP[biz] : 'All Categories'}</span>
+      ${u.createdBy ? `<span style="font-size:0.7rem;color:var(--gray-400)">Created by ${u.createdBy}</span>` : ''}
+    </div>
+    <div class="user-actions">
+      <button class="action-btn primary" onclick="editUser('${u.uid}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
+      ${u.role !== 'super_admin' && !isOwn ? `<button class="action-btn danger" onclick="deleteUser('${u.uid}', '${u.name.replace(/'/g, "\\'")}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function onRoleChange() {
+  const role = document.getElementById('u_role').value;
+  const bizGroup = document.getElementById('bizGroup');
+  const infoBox = document.getElementById('bizInfoBox');
+  const msgs = {
+    super_admin: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><strong>Super Admin</strong> — Full system access: all categories, user management, audit trail, settings, and backup. Cannot be deleted.',
+    manager: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><strong>Manager</strong> — Manages assigned business category: inventory, sales, expenses, reports. Can add/edit/delete records.',
+    viewer: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><strong>Viewer</strong> — Read-only access to all dashboards and reports. Can print documents.',
+  };
+  if (role === 'super_admin' || role === 'viewer') {
+    bizGroup.style.display = 'none';
+  } else {
+    bizGroup.style.display = 'block';
+  }
+  infoBox.style.display = 'block';
+  infoBox.innerHTML = msgs[role] || '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><strong>Employee</strong> — Accesses only the selected business category for inventory, sales, and reports.';
+}
+
+function openAddUser() {
+  document.getElementById('userModalTitle').textContent = 'Add User Account';
+  document.getElementById('pwRow').style.display = '';
+  document.getElementById('u_id').value = '';
+  document.getElementById('u_name').value = '';
+  document.getElementById('u_email').value = ''; document.getElementById('u_email').disabled = false;
+  document.getElementById('u_role').value = 'employee';
+  document.getElementById('u_status').value = 'active';
+  document.getElementById('u_password').value = '';
+  document.getElementById('u_confirm').value = '';
+  document.getElementById('u_password').placeholder = 'Create password';
+  document.getElementById('u_confirm').placeholder = 'Confirm password';
+  document.getElementById('u_businesses').value = '';
+  onRoleChange();
+  openModal('addUserModal');
+}
+
+function editUser(uid) {
+  const u = users.find(x => x.uid === uid);
+  if (!u) return;
+  document.getElementById('userModalTitle').textContent = 'Edit User Account';
+  document.getElementById('pwRow').style.display = '';
+  document.getElementById('u_id').value = u.uid;
+  document.getElementById('u_name').value = u.name;
+  document.getElementById('u_email').value = u.email; document.getElementById('u_email').disabled = true;
+  document.getElementById('u_password').value = '';
+  document.getElementById('u_confirm').value = '';
+  document.getElementById('u_password').placeholder = 'Leave blank to keep current password';
+  document.getElementById('u_confirm').placeholder = 'Leave blank to keep current password';
+  document.getElementById('u_role').value = u.role;
+  document.getElementById('u_status').value = u.status;
+  const biz = u.businesses;
+  if (biz && Array.isArray(biz) && biz.length > 0 && biz[0] !== 'all') {
+    document.getElementById('u_businesses').value = biz[0];
+  } else {
+    document.getElementById('u_businesses').value = '';
+  }
+  onRoleChange();
+  openModal('addUserModal');
+}
+
+async function saveUser() {
+  const id = document.getElementById('u_id').value;
+  const pw = document.getElementById('u_password').value;
+  const pw2 = document.getElementById('u_confirm').value;
+  if (pw !== pw2) { Toast.warning('Passwords do not match'); return; }
+  if (pw && pw.length < 6) { Toast.warning('Password must be at least 6 characters'); return; }
+  const role = document.getElementById('u_role').value;
+  const selectedBiz = document.getElementById('u_businesses').value;
+  if ((role === 'employee' || role === 'manager') && !selectedBiz) {
+    Toast.warning('Please select a business category for this user');
+    return;
+  }
+  const businesses = (role === 'super_admin' || role === 'viewer') ? ['all'] : [selectedBiz];
+  const data = {
+    name: document.getElementById('u_name').value,
+    email: document.getElementById('u_email').value,
+    role, businesses,
+    status: document.getElementById('u_status').value
+  };
+  if (!data.name || !data.email) { Toast.warning('Name and email are required'); return; }
+  if (pw) data.password = pw;
+  try {
+    const res = id ? await API.put(`/api/admin/users/${id}`, data) : await API.post('/api/admin/users', data);
+    if (res.success) { Toast.success(id ? 'User updated' : 'User created successfully!'); closeModal('addUserModal'); loadData(); }
+    else { Toast.error(res.message); }
+  } catch(e) { Toast.error('Error saving user'); }
+}
+
+async function deactivateUser(uid) {
+  confirm('Set this user to Inactive? They will not be able to log in. Transactions and audit logs are preserved.', async () => {
+    try {
+      const res = await API.put('/api/admin/users/' + uid, { status: 'inactive' });
+      if (res.success) { Toast.success('User deactivated.'); loadData(); }
+      else { Toast.error(res.message); }
+    } catch(err) { Toast.error('Failed to deactivate user'); }
+  });
+}
+
+async function reactivateUser(uid) {
+  confirm('Reactivate this user account?', async () => {
+    try {
+      const res = await API.put('/api/admin/users/' + uid, { status: 'active' });
+      if (res.success) { Toast.success('User reactivated.'); loadData(); }
+      else { Toast.error(res.message); }
+    } catch(err) { Toast.error('Failed to reactivate user'); }
+  });
+}
+
+async function deleteUser(uid, name) {
+  confirm(`Permanently delete "${name}"? This removes the account from Firebase Auth and the system. Transactions and audit logs linked to this user will remain but the account will be gone.`, async () => {
+    try {
+      const res = await API.del('/api/admin/users/' + uid);
+      if (res.success) { Toast.success(`"${name}" deleted permanently.`); loadData(); }
+      else { Toast.error(res.message); }
+    } catch(err) { Toast.error('Failed to delete user'); }
+  });
+}
+
+async function resetUserPassword(uid) {
+  const targetUid = uid || document.getElementById('u_id').value;
+  if (!targetUid) return;
+  const newPw = prompt("Enter new password (minimum 6 characters):");
+  if (newPw === null || newPw.trim().length < 6) { Toast.warning("Password must be at least 6 characters."); return; }
+  try {
+    const res = await API.post(`/api/admin/users/${targetUid}/reset-password`, { password: newPw.trim() });
+    if (res.success) { Toast.success("Password reset successfully!"); closeModal('addUserModal'); }
+    else { Toast.error(res.message); }
+  } catch(e) { Toast.error("Failed to reset password"); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  getCurrentUser().then(u => {
+    if (u) {
+      window._currentUser = u;
+      document.getElementById('sidebarName').textContent = u.name;
+      document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role);
+      document.getElementById('sidebarAvatar').textContent = u.name.charAt(0);
+    }
+  });
+});
+</script>
+</body>
+</html>

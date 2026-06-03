@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .notif-page-list { max-height: none; }
+    .notif-page-item { display: flex; align-items: start; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--gray-200); transition: background 0.2s; }
+    .notif-page-item:last-child { border-bottom: none; }
+    .notif-page-item.unread { background: var(--info-light); margin: 0 -16px; padding: 16px; border-radius: var(--radius-sm); border-bottom-color: transparent; }
+    .notif-page-item.unread + .notif-page-item { border-top: none; }
+    .notif-page-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.9rem; }
+    .notif-page-icon.inventory { background: #E8F5E9; color: var(--green); }
+    .notif-page-icon.system { background: var(--info-light); color: var(--info); }
+    .notif-page-icon.low_stock { background: var(--yellow-light); color: var(--yellow-dark); }
+    .notif-page-icon.critical { background: var(--danger-light); color: var(--danger); }
+    .notif-page-icon.deadline { background: #FFF3CD; color: #856404; }
+    .notif-page-icon.submission { background: #E8F5E9; color: var(--green); }
+    .notif-page-title { font-weight: 600; font-size: 0.92rem; margin-bottom: 2px; }
+    .notif-page-msg { font-size: 0.82rem; color: var(--gray-600); line-height: 1.4; }
+    .notif-page-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.72rem; color: var(--gray-400); }
+    .notif-page-badge { font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .notif-page-badge.inventory { background: #E8F5E9; color: var(--green); }
+    .notif-page-badge.system { background: var(--info-light); color: var(--info); }
+    .notif-page-badge.low_stock { background: var(--yellow-light); color: var(--yellow-dark); }
+    .notif-page-badge.deadline { background: #FFF3CD; color: #856404; }
+    .notif-filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+    .notif-filter-bar .filter-item { flex: 0 0 auto; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/admin/dashboard"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+      <a class="nav-item" href="/admin/business"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg></span> Business</a>
+      <a class="nav-item" href="/admin/sales"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+      <a class="nav-item" href="/admin/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+      <a class="nav-item active" href="/admin/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
+      <a class="nav-item" href="/admin/users"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Users</a>
+      <a class="nav-item" href="/admin/settings"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Settings</a>
+      <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">A</div>
+        <div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title">Notifications</span>
+      </div>
+      <div class="topbar-actions" style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.3)" onclick="markAllRead()">Mark All Read</button>
+        <button class="profile-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Profile</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="notif-filter-bar">
+        <div class="filter-item">
+          <select id="fType" class="filter-control" onchange="renderNotifs()">
+            <option value="">All Types</option>
+            <option value="inventory">Inventory</option>
+            <option value="system">System</option>
+            <option value="low_stock">Low Stock</option>
+            <option value="deadline">Deadline</option>
+            <option value="submission">Submission</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <select id="fBiz" class="filter-control" onchange="renderNotifs()">
+            <option value="">All Categories</option>
+            <option value="RENTAL">Rental</option>
+            <option value="BUSINESS">Business</option>
+            <option value="AGRI">Agriculture</option>
+            <option value="NON_AGRI">Non-Agriculture</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <select id="fRead" class="filter-control" onchange="renderNotifs()">
+            <option value="">All</option>
+            <option value="unread">Unread Only</option>
+            <option value="read">Read Only</option>
+          </select>
+        </div>
+        <div style="flex:1"></div>
+        <div style="font-size:0.82rem;color:var(--gray-600)"><span id="notifCountLabel">0</span> notifications</div>
+      </div>
+
+      <div class="card">
+        <div id="notifList">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let notifications = [];
+
+async function loadNotifs() {
+  try {
+    const res = await API.get('/api/admin/notifications');
+    if (res.success) {
+      notifications = res.data;
+      renderNotifs();
+    }
+  } catch(e) {
+    document.getElementById('notifList').innerHTML = '<div class="empty-state"><h3>Error loading notifications</h3><p>Could not connect to server.</p></div>';
+  }
+}
+
+function renderNotifs() {
+  const type = document.getElementById('fType').value;
+  const biz = document.getElementById('fBiz').value;
+  const read = document.getElementById('fRead').value;
+
+  let list = [...notifications];
+  if (type) list = list.filter(n => n.type === type);
+  if (biz) list = list.filter(n => n.businessCategory === biz);
+  if (read === 'unread') list = list.filter(n => !n.isRead);
+  if (read === 'read') list = list.filter(n => n.isRead);
+
+  document.getElementById('notifCountLabel').textContent = list.length;
+
+  const el = document.getElementById('notifList');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:40px 20px"><h3>No notifications found</h3><p>Try adjusting your filters.</p></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(n => {
+    const isUnread = !n.isRead;
+    const typeIcon = getTypeIcon(n.type);
+    const bizLabel = n.businessCategory ? `<span class="badge badge-gray">${n.businessCategory}</span>` : '';
+    return `<div class="notif-page-item ${isUnread ? 'unread' : ''}" onclick="markAsRead('${n.id}')">
+      <div class="notif-page-icon ${n.type || 'system'}">${typeIcon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="notif-page-title">${n.title} ${bizLabel}</div>
+        <div class="notif-page-msg">${n.message}</div>
+        <div class="notif-page-meta">
+          <span>${timeAgo(n.createdAt)}</span>
+          ${n.createdByName ? `<span>by ${n.createdByName}</span>` : ''}
+          ${n.entityName ? `<span>· ${n.entityName}</span>` : ''}
+          ${!isUnread ? '<span style="color:var(--green)">· Read</span>' : ''}
+          <span class="notif-page-badge ${n.type || 'system'}">${n.type || 'system'}</span>
+        </div>
+      </div>
+      ${isUnread ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--info);flex-shrink:0;margin-top:6px"></div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function getTypeIcon(type) {
+  const icons = {
+    inventory: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',
+    low_stock: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    deadline: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    submission: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  };
+  return icons[type] || '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+}
+
+async function markAsRead(id) {
+  const n = notifications.find(x => x.id === id);
+  if (!n || n.isRead) return;
+  try {
+    await API.put('/api/admin/notifications/' + id + '/read');
+    n.isRead = true;
+    renderNotifs();
+    updateNotifBell();
+  } catch(e) { console.error(e); }
+}
+
+async function markAllRead() {
+  const unread = notifications.filter(n => !n.isRead);
+  if (!unread.length) { Toast.info('All notifications are already read'); return; }
+  try {
+    await Promise.all(unread.map(n =>
+      API.put('/api/admin/notifications/' + n.id + '/read').catch(() => {})
+    ));
+    unread.forEach(n => n.isRead = true);
+    renderNotifs();
+    updateNotifBell();
+    Toast.success('Marked all as read');
+  } catch(e) { Toast.error('Error marking all as read'); }
+}
+
+function updateNotifBell() {
+  const count = notifications.filter(n => !n.isRead).length;
+  const el = document.getElementById('notifCount');
+  if (el) {
+    el.textContent = count;
+    el.style.display = count > 0 ? 'flex' : 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  getCurrentUser().then(u => {
+    if (u) {
+      document.getElementById('sidebarName').textContent = u.name;
+      document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role);
+      document.getElementById('sidebarAvatar').textContent = u.name.charAt(0).toUpperCase();
+    }
+  });
+  loadNotifs();
+});
+</script>
+</body>
+</html>

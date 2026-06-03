@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expenses &amp; Income — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .type-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .type-badge.income { background: var(--green-light); color: var(--green); }
+    .type-badge.expense { background: var(--danger-light); color: var(--danger); }
+    .summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .summary-card { background: var(--white); border-radius: var(--radius); padding: 20px; border: 1px solid var(--gray-200); text-align: center; }
+    .summary-card .sc-label { font-size: 0.78rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .summary-card .sc-value { font-size: 1.5rem; font-weight: 800; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav" id="empNav"></nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">E</div>
+        <div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title" id="topbarTitle">Expenses &amp; Income</span>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="summary-row">
+        <div class="summary-card"><div class="sc-label">Total Income</div><div class="sc-value" id="sumIncome" style="color:var(--green)">&#8369;0</div></div>
+        <div class="summary-card"><div class="sc-label">Total Expenses</div><div class="sc-value" id="sumExpense" style="color:var(--danger)">&#8369;0</div></div>
+        <div class="summary-card"><div class="sc-label">Net Cash Flow</div><div class="sc-value" id="sumNet">&#8369;0</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+          <div class="flex-c gap-8">
+            <select id="fType" class="form-control" style="max-width:160px" onchange="renderTable()">
+              <option value="">All Types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+            <input id="fSearch" class="form-control" placeholder="Search..." style="max-width:220px" oninput="renderTable()">
+          </div>
+          <div class="flex-c gap-8">
+            <button class="btn btn-outline" style="border-color:var(--green);color:var(--green)" onclick="openEntry('income')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Income</button>
+            <button class="btn btn-primary" style="background:var(--danger);border-color:var(--danger)" onclick="openEntry('expense')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Expense</button>
+          </div>
+        </div>
+        <div id="entryTable">
+          <div class="empty-state"><h3>No records yet</h3><p>Start recording income and expenses for this business category</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Entry Modal -->
+<div class="modal-overlay" id="entryModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3 id="entryTitle">Add Entry</h3><button class="modal-close" onclick="closeModal('entryModal')">&times;</button></div>
+    <input type="hidden" id="e_id">
+    <input type="hidden" id="e_type">
+    <div class="form-group"><label class="form-label">Description *</label><input id="e_desc" class="form-control" placeholder="e.g. Utilities, Supplier payment, Rental income"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Amount (&#8369;) *</label><input id="e_amount" type="number" class="form-control" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Date</label><input id="e_date" type="date" class="form-control"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Category</label>
+      <select id="e_category" class="form-control">
+        <option value="utilities">Utilities</option>
+        <option value="supplies">Supplies</option>
+        <option value="salary">Salary / Wages</option>
+        <option value="maintenance">Maintenance</option>
+        <option value="procurement">Procurement</option>
+        <option value="sales_income">Sales Income</option>
+        <option value="rental_income">Rental Income</option>
+        <option value="service_fee">Service Fee</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><input id="e_notes" class="form-control" placeholder="Optional notes"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('entryModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const BIZ_META = {
+  RENTAL:   { name: 'Rental', color: '#6B3FA0' },
+  BUSINESS: { name: 'Business', color: '#2d6a2e' },
+  AGRI:     { name: 'Agriculture', color: '#D4A915' },
+  NON_AGRI: { name: 'Non-Agriculture', color: '#1A1A1A' },
+};
+const params = new URLSearchParams(window.location.search);
+const BIZ = params.get('biz') || 'RENTAL';
+const meta = BIZ_META[BIZ] || BIZ_META.RENTAL;
+let entries = [];
+
+function buildNav() {
+  document.getElementById('empNav').innerHTML = `
+    <a class="nav-item" href="/employee/dashboard?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+    <a class="nav-item" href="/employee/inventory?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+    <a class="nav-item" href="/employee/sales?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+    <a class="nav-item active" href="/employee/expenses?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> Expenses / Income</a>
+    <a class="nav-item" href="/employee/reports?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+    <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+  `;
+}
+
+async function loadData() {
+  try {
+    const res = await API.get('/api/expenses?biz=' + BIZ);
+    if (res.success) { entries = res.data || []; renderTable(); updateSummary(); }
+  } catch(e) { console.error(e); }
+}
+
+function updateSummary() {
+  const income = entries.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+  const expense = entries.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+  const net = income - expense;
+  document.getElementById('sumIncome').innerHTML = '&#8369;' + income.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('sumExpense').innerHTML = '&#8369;' + expense.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('sumNet').innerHTML = '&#8369;' + net.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('sumNet').style.color = net >= 0 ? 'var(--green)' : 'var(--danger)';
+}
+
+function renderTable() {
+  const search = document.getElementById('fSearch').value.toLowerCase();
+  const typeFilter = document.getElementById('fType').value;
+  let list = entries;
+  if (typeFilter) list = list.filter(e => e.type === typeFilter);
+  if (search) list = list.filter(e => (e.description||'').toLowerCase().includes(search) || (e.category||'').toLowerCase().includes(search));
+  const el = document.getElementById('entryTable');
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><h3>No records found</h3><p>Add income or expense records to see them here</p></div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Category</th><th>Amount</th><th>Actions</th></tr></thead><tbody>
+    ${list.map(e => `<tr>
+      <td style="font-size:0.82rem">${e.date || '—'}</td>
+      <td><span class="type-badge ${e.type}">${e.type === 'income' ? 'Income' : 'Expense'}</span></td>
+      <td class="fw-bold">${e.description || '—'}</td>
+      <td style="font-size:0.82rem">${e.category || '—'}</td>
+      <td class="fw-bold" style="color:${e.type==='income'?'var(--green)':'var(--danger)'}">
+        ${e.type==='income'?'+':'-'}&#8369;${parseFloat(e.amount||0).toLocaleString('en',{minimumFractionDigits:2})}
+      </td>
+      <td class="table-actions">
+        <button class="btn btn-outline btn-sm" onclick="editEntry('${e.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteEntry('${e.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function openEntry(type) {
+  document.getElementById('entryTitle').textContent = type === 'income' ? 'Add Income' : 'Add Expense';
+  document.getElementById('e_id').value = '';
+  document.getElementById('e_type').value = type;
+  document.getElementById('e_desc').value = '';
+  document.getElementById('e_amount').value = '';
+  document.getElementById('e_date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('e_category').value = type === 'income' ? 'sales_income' : 'utilities';
+  document.getElementById('e_notes').value = '';
+  openModal('entryModal');
+}
+
+function editEntry(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('entryTitle').textContent = 'Edit ' + (e.type === 'income' ? 'Income' : 'Expense');
+  document.getElementById('e_id').value = e.id;
+  document.getElementById('e_type').value = e.type;
+  document.getElementById('e_desc').value = e.description || '';
+  document.getElementById('e_amount').value = e.amount || '';
+  document.getElementById('e_date').value = e.date || '';
+  document.getElementById('e_category').value = e.category || 'other';
+  document.getElementById('e_notes').value = e.notes || '';
+  openModal('entryModal');
+}
+
+async function saveEntry() {
+  const id = document.getElementById('e_id').value;
+  const data = {
+    type: document.getElementById('e_type').value,
+    description: document.getElementById('e_desc').value,
+    amount: parseFloat(document.getElementById('e_amount').value) || 0,
+    date: document.getElementById('e_date').value,
+    category: document.getElementById('e_category').value,
+    notes: document.getElementById('e_notes').value,
+    businessCategory: BIZ,
+  };
+  if (!data.description) { Toast.warning('Description is required'); return; }
+  if (data.amount <= 0) { Toast.warning('Amount must be greater than 0'); return; }
+  try {
+    const res = id
+      ? await API.put('/api/expenses/' + id, data)
+      : await API.post('/api/expenses', data);
+    if (res.success) { Toast.success('Entry saved'); closeModal('entryModal'); loadData(); }
+    else { Toast.error(res.message); }
+  } catch(e) { Toast.error('Error saving entry'); }
+}
+
+async function deleteEntry(id) {
+  if (!window.confirm('Delete this record?')) return;
+  try {
+    const res = await API.del('/api/expenses/' + id);
+    if (res.success) { Toast.success('Deleted'); loadData(); }
+    else { Toast.error(res.message); }
+  } catch(e) { Toast.error('Error'); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildNav();
+  document.getElementById('topbarTitle').textContent = meta.name + ' - Expenses & Income';
+  document.title = meta.name + ' Expenses - OBA System';
+  loadData();
+  getCurrentUser().then(u => { if(u){ document.getElementById('sidebarName').textContent = u.name; document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role); document.getElementById('sidebarAvatar').textContent = u.name.charAt(0).toUpperCase(); }});
+});
+</script>
+</body>
+</html>

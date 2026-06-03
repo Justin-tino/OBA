@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/html5-qrcode.min.js"></script>
+  <style>
+    .sale-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .sale-toolbar .search-box {
+      flex: 1;
+      max-width: 320px;
+    }
+
+    .receipt-preview {
+      border: 1px solid var(--gray-200);
+      padding: 24px;
+      border-radius: var(--radius);
+      background: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .receipt-preview .rp-header {
+      text-align: center;
+      border-bottom: 1px dashed var(--gray-300);
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+
+      .main-content {
+        margin: 0;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-layout">
+    <aside class="sidebar no-print" id="sidebar">
+      <div class="sidebar-logo-area">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        <div class="org-name">Office of Business Affairs</div>
+      </div>
+      <nav class="sidebar-nav" id="empNav"></nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar" id="sidebarAvatar">E</div>
+          <div>
+            <div class="sidebar-user-name" id="sidebarName">Loading...</div>
+            <div class="sidebar-user-role">Logged in as:</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <div class="topbar topbar-green no-print">
+        <div class="flex-c gap-12">
+          <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18"
+              fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg></button>
+          <span class="topbar-title" id="topbarTitle">Sales</span>
+        </div>
+      </div>
+
+      <div class="page-content">
+        <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+          <div class="kpi-card yellow">
+            <div class="kpi-label">Today's Sales</div>
+            <div class="kpi-value" id="kpiToday">&#8369;0</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-label">This Week</div>
+            <div class="kpi-value" id="kpiWeek" style="color:var(--green)">&#8369;0</div>
+          </div>
+          <div class="kpi-card black">
+            <div class="kpi-label">This Month</div>
+            <div class="kpi-value" id="kpiMonth">&#8369;0</div>
+          </div>
+          <div class="kpi-card danger">
+            <div class="kpi-label">Transactions</div>
+            <div class="kpi-value" id="kpiTxn" style="color:var(--danger)">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sale-toolbar">
+            <div class="search-box">
+              <input id="fSearch" class="form-control" placeholder="Search sales..." oninput="renderTable()">
+            </div>
+            <div class="flex-c gap-8">
+              <input type="date" id="fDateFrom" class="form-control" style="max-width:150px">
+              <input type="date" id="fDateTo" class="form-control" style="max-width:150px">
+              <button class="btn btn-outline" onclick="loadData()">Filter</button>
+              <button class="btn btn-green" onclick="openQuickQRScanner()"><svg width="14" height="14" fill="none"
+                  stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path
+                    d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm14 0h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zm-4 0h2v2h-2zm0-4h2v2h-2zm2 2h2v2h-2z" />
+                </svg> Scan QR to Sell</button>
+              <button class="btn btn-primary" onclick="openRecordSale()"><svg width="14" height="14" fill="none"
+                  stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg> Record Sale</button>
+            </div>
+          </div>
+          <div id="salesTable">
+            <div class="empty-state">
+              <h3>No sales recorded</h3>
+              <p>Click "Record Sale" to add a transaction</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Sale Modal -->
+  <div class="modal-overlay" id="saleModal">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <h3>Record Sale</h3><button class="modal-close" onclick="closeModal('saleModal')">&times;</button>
+      </div>
+
+      <!-- QR Scanner Area -->
+      <div id="qrScannerArea"
+        style="display:none; margin-bottom: 16px; border: 1.5px dashed var(--green); border-radius: 8px; overflow: hidden; padding: 12px; text-align: center; background: var(--green-light);">
+        <h4 style="margin: 0 0 10px 0; color: var(--green);">Webcam QR Scanner</h4>
+        <div style="margin-bottom: 10px;">
+          <select id="cameraSelect" class="form-control"
+            style="max-width: 250px; margin: 0 auto; display: inline-block; font-size: 0.85rem; padding: 4px 8px; height: auto;"
+            onchange="changeCamera(this.value)"></select>
+        </div>
+        <div id="reader"
+          style="width: 100%; max-width: 320px; margin: 0 auto 10px; border-radius: 8px; overflow: hidden;"></div>
+        <button class="btn btn-outline btn-sm" onclick="stopQRScanner()">Stop Scanner</button>
+      </div>
+
+      <div id="saleItems">
+        <div class="sale-item form-row" data-idx="0">
+          <div class="form-group" style="flex:2">
+            <label class="form-label">Item / Product *</label>
+            <select class="form-control si-product" onchange="onProductSelect(this)"></select>
+          </div>
+          <div class="form-group"><label class="form-label">Qty</label><input type="number" class="form-control si-qty"
+              value="1" min="1" oninput="calcSaleTotal()"></div>
+          <div class="form-group"><label class="form-label">Price (&#8369;)</label><input type="number"
+              class="form-control si-price" placeholder="0.00" step="0.01" oninput="calcSaleTotal()" readonly></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <button class="btn btn-outline btn-sm" onclick="addSaleRow()"><svg width="12" height="12" fill="none"
+            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg> Add Item</button>
+        <button class="btn btn-green btn-sm" onclick="startQRScanner()"><svg width="12" height="12" fill="none"
+            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path
+              d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm14 0h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zm-4 0h2v2h-2zm0-4h2v2h-2zm2 2h2v2h-2z" />
+          </svg> Scan QR Code</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Payment Method</label>
+          <select id="s_payment" class="form-control">
+            <option value="cash">Cash</option>
+            <option value="gcash">GCash</option>
+            <option value="credit">Credit</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Total</label>
+          <div id="saleTotal" style="font-size:1.3rem;font-weight:800;color:var(--green);padding-top:6px">&#8369;0.00
+          </div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><input id="s_notes" class="form-control"
+          placeholder="Optional notes"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('saleModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSale()">Save Sale</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    const BIZ_META = {
+      RENTAL: { name: 'Rental', color: '#6B3FA0' },
+      BUSINESS: { name: 'Business', color: '#2d6a2e' },
+      AGRI: { name: 'Agriculture', color: '#D4A915' },
+      NON_AGRI: { name: 'Non-Agriculture', color: '#1A1A1A' },
+    };
+    const params = new URLSearchParams(window.location.search);
+    const BIZ = params.get('biz') || 'RENTAL';
+    const meta = BIZ_META[BIZ] || BIZ_META.RENTAL;
+    let sales = [];
+    let inventory = [];
+    let html5QrScanner = null;
+
+    async function loadInventory() {
+      try {
+        const res = await API.get('/api/inventory?biz=' + BIZ);
+        if (res.success) inventory = res.data.filter(i => parseInt(i.quantity || i.stock) > 0) || [];
+      } catch (e) { }
+    }
+
+    function buildNav() {
+      document.getElementById('empNav').innerHTML = `
+    <a class="nav-item" href="/employee/dashboard?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+    <a class="nav-item" href="/employee/inventory?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+    <a class="nav-item active" href="/employee/sales?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+    <a class="nav-item" href="/employee/expenses?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> Expenses / Income</a>
+    <a class="nav-item" href="/employee/reports?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+    <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+  `;
+    }
+
+    async function loadData() {
+      try {
+        const res = await API.get('/api/sales?biz=' + BIZ);
+        if (res.success) { sales = res.data || []; renderTable(); updateKPIs(); }
+      } catch (e) { console.error(e); }
+    }
+
+    function updateKPIs() {
+      const today = new Date().toISOString().split('T')[0];
+      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+      const monthStart = today.substring(0, 7) + '-01';
+      const todaySales = sales.filter(s => (s.date || '').startsWith(today)).reduce((a, s) => a + (s.total || 0), 0);
+      const weekSales = sales.filter(s => (s.date || '') >= weekAgo).reduce((a, s) => a + (s.total || 0), 0);
+      const monthSales = sales.filter(s => (s.date || '') >= monthStart).reduce((a, s) => a + (s.total || 0), 0);
+      document.getElementById('kpiToday').innerHTML = '&#8369;' + todaySales.toLocaleString('en', { minimumFractionDigits: 2 });
+      document.getElementById('kpiWeek').innerHTML = '&#8369;' + weekSales.toLocaleString('en', { minimumFractionDigits: 2 });
+      document.getElementById('kpiMonth').innerHTML = '&#8369;' + monthSales.toLocaleString('en', { minimumFractionDigits: 2 });
+      document.getElementById('kpiTxn').textContent = sales.length;
+    }
+
+    function renderTable() {
+      const search = document.getElementById('fSearch').value.toLowerCase();
+      let list = sales;
+      if (search) list = list.filter(s => JSON.stringify(s).toLowerCase().includes(search));
+      const el = document.getElementById('salesTable');
+      if (!list.length) { el.innerHTML = '<div class="empty-state"><h3>No sales recorded</h3><p>Click "Record Sale" to add a transaction</p></div>'; return; }
+      el.innerHTML = `<table><thead><tr><th>Date</th><th>Items</th><th>Payment</th><th>Total</th><th>Actions</th></tr></thead><tbody>
+    ${list.map(s => `<tr>
+      <td style="font-size:0.82rem">${s.date || '—'}</td>
+      <td>${(s.items || []).map(i => i.name).join(', ') || '—'}</td>
+      <td><span class="badge badge-gray">${s.paymentMethod || 'cash'}</span></td>
+      <td class="fw-bold">&#8369;${parseFloat(s.total || 0).toLocaleString('en', { minimumFractionDigits: 2 })}</td>
+      <td class="table-actions"><button class="btn btn-outline btn-sm" onclick="printReceipt('${s.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+    }
+
+    let saleRowCount = 1;
+    function addSaleRow() {
+      const idx = saleRowCount++;
+      const options = '<option value="">-- Select Product --</option>' + inventory.map(p => `<option value="${p.id}" data-price="${p.sellingPrice || 0}" data-qty="${p.quantity || p.stock || 0}">${p.name} (Stock: ${p.quantity || p.stock || 0})</option>`).join('');
+      const html = `<div class="sale-item form-row" data-idx="${idx}">
+    <div class="form-group" style="flex:2"><select class="form-control si-product" onchange="onProductSelect(this)">${options}</select></div>
+    <div class="form-group"><input type="number" class="form-control si-qty" value="1" min="1" oninput="calcSaleTotal()"></div>
+    <div class="form-group"><input type="number" class="form-control si-price" placeholder="0.00" step="0.01" oninput="calcSaleTotal()" readonly></div>
+  </div>`;
+      document.getElementById('saleItems').insertAdjacentHTML('beforeend', html);
+    }
+
+    function onProductSelect(selectEl) {
+      const row = selectEl.closest('.sale-item');
+      const opt = selectEl.options[selectEl.selectedIndex];
+      const priceInput = row.querySelector('.si-price');
+      const qtyInput = row.querySelector('.si-qty');
+      if (opt && opt.value) {
+        priceInput.value = opt.getAttribute('data-price');
+        qtyInput.max = opt.getAttribute('data-qty');
+        qtyInput.value = 1;
+      } else {
+        priceInput.value = '';
+        qtyInput.max = '';
+      }
+      calcSaleTotal();
+    }
+
+    function calcSaleTotal() {
+      let total = 0;
+      document.querySelectorAll('.sale-item').forEach(row => {
+        const qty = parseFloat(row.querySelector('.si-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.si-price').value) || 0;
+        total += qty * price;
+      });
+      document.getElementById('saleTotal').innerHTML = '&#8369;' + total.toLocaleString('en', { minimumFractionDigits: 2 });
+    }
+
+    function openRecordSale() {
+      saleRowCount = 1;
+      const options = '<option value="">-- Select Product --</option>' + inventory.map(p => `<option value="${p.id}" data-price="${p.sellingPrice || 0}" data-qty="${p.quantity || p.stock || 0}">${p.name} (Stock: ${p.quantity || p.stock || 0})</option>`).join('');
+      document.getElementById('saleItems').innerHTML = `<div class="sale-item form-row" data-idx="0">
+    <div class="form-group" style="flex:2"><label class="form-label">Item / Product * <small style="color:var(--gray-400);font-weight:400">(Barcode Scanner Ready)</small></label>
+    <select class="form-control si-product" onchange="onProductSelect(this)">${options}</select></div>
+    <div class="form-group"><label class="form-label">Qty</label><input type="number" class="form-control si-qty" value="1" min="1" oninput="calcSaleTotal()"></div>
+    <div class="form-group"><label class="form-label">Price (&#8369;)</label><input type="number" class="form-control si-price" placeholder="0.00" step="0.01" oninput="calcSaleTotal()" readonly></div>
+  </div>`;
+      document.getElementById('saleTotal').innerHTML = '&#8369;0.00';
+      document.getElementById('s_payment').value = 'cash';
+      document.getElementById('s_notes').value = '';
+      openModal('saleModal');
+    }
+
+    let scannerSelectedCameraId = null;
+
+    async function startQRScanner() {
+      document.getElementById('qrScannerArea').style.display = 'block';
+
+      if (html5QrScanner) {
+        try { await html5QrScanner.stop(); } catch (e) { }
+        html5QrScanner = null;
+      }
+
+      html5QrScanner = new Html5Qrcode("reader");
+      const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+        const productId = decodedText.trim();
+        const product = inventory.find(p => p.id === productId);
+
+        if (product) {
+          Toast.success(`Scanned: ${product.name}`);
+          addProductToSale(product);
+
+          // Play premium sound indicator
+          try {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = context.createOscillator();
+            osc.type = "sine";
+            osc.frequency.value = 1200;
+            osc.connect(context.destination);
+            osc.start();
+            osc.stop(context.currentTime + 0.08);
+          } catch (e) { }
+        } else {
+          Toast.warning("Product not found in this inventory category");
+        }
+      };
+
+      const config = { fps: 15, qrbox: { width: 220, height: 220 } };
+      try {
+        const cameras = await Html5Qrcode.getCameras();
+        const selectEl = document.getElementById('cameraSelect');
+        if (cameras && cameras.length > 0) {
+          selectEl.innerHTML = cameras.map(c => `<option value="${c.id}">${c.label || 'Camera ' + c.id}</option>`).join('');
+
+          let cameraId = scannerSelectedCameraId || cameras[0].id;
+          if (!scannerSelectedCameraId) {
+            const backCam = cameras.find(c => c.label.toLowerCase().includes('back'));
+            if (backCam) cameraId = backCam.id;
+          }
+
+          scannerSelectedCameraId = cameraId;
+          selectEl.value = cameraId;
+
+          await html5QrScanner.start(cameraId, config, qrCodeSuccessCallback);
+        } else {
+          throw new Error("No cameras found.");
+        }
+      } catch (err) {
+        console.error(err);
+        const readerEl = document.getElementById('reader');
+        if (readerEl) {
+          let errorMsg = '<div style="text-align:left; font-size:0.82rem; font-weight:normal; line-height:1.4; color:var(--danger); padding: 12px; border:1px solid #ffccd5; border-radius:6px; background:#fff5f5; margin-bottom:10px;">';
+          errorMsg += '<strong>Webcam startup failed.</strong><br><br>';
+          errorMsg += 'Troubleshooting steps:<br>';
+          errorMsg += '• Slide open your physical webcam privacy shutter.<br>';
+          errorMsg += '• Press your keyboard\'s webcam toggle key (e.g., Fn+F4 or Fn+F9).<br>';
+          errorMsg += '• Open Windows Settings > Camera and toggle the "Camera" app to ON.<br>';
+          errorMsg += '• Close any running apps using the webcam (Discord, OBS, Zoom).<br>';
+          errorMsg += '• Try selecting another camera from the dropdown above.';
+          errorMsg += '</div>';
+          readerEl.innerHTML = errorMsg;
+        } else {
+          Toast.error("Webcam startup failed.");
+        }
+      }
+    }
+
+    async function changeCamera(cameraId) {
+      scannerSelectedCameraId = cameraId;
+      await startQRScanner();
+    }
+
+    function stopQRScanner() {
+      if (html5QrScanner) {
+        html5QrScanner.stop().then(() => {
+          html5QrScanner = null;
+          document.getElementById('qrScannerArea').style.display = 'none';
+        }).catch(err => {
+          console.error(err);
+          html5QrScanner = null;
+          document.getElementById('qrScannerArea').style.display = 'none';
+        });
+      } else {
+        document.getElementById('qrScannerArea').style.display = 'none';
+      }
+    }
+
+    function addProductToSale(product) {
+      let existingRow = null;
+      document.querySelectorAll('.sale-item').forEach(row => {
+        const select = row.querySelector('.si-product');
+        if (select.value === product.id) {
+          existingRow = row;
+        }
+      });
+
+      if (existingRow) {
+        const qtyInput = existingRow.querySelector('.si-qty');
+        const currentQty = parseInt(qtyInput.value) || 0;
+        const maxQty = parseInt(product.quantity || product.stock) || 9999;
+        if (currentQty < maxQty) {
+          qtyInput.value = currentQty + 1;
+        } else {
+          Toast.warning(`Insufficient stock for ${product.name}`);
+        }
+      } else {
+        let targetRow = null;
+        const rows = document.querySelectorAll('.sale-item');
+        for (let row of rows) {
+          const select = row.querySelector('.si-product');
+          if (!select.value) {
+            targetRow = row;
+            break;
+          }
+        }
+
+        if (!targetRow) {
+          addSaleRow();
+          const newRows = document.querySelectorAll('.sale-item');
+          targetRow = newRows[newRows.length - 1];
+        }
+
+        const select = targetRow.querySelector('.si-product');
+        select.value = product.id;
+        onProductSelect(select);
+      }
+      calcSaleTotal();
+    }
+
+    // Intercept modal closing to stop camera
+    const originalCloseModal = window.closeModal;
+    window.closeModal = function (id) {
+      if (id === 'saleModal') {
+        stopQRScanner();
+      }
+      if (id === 'quickQRModal') {
+        stopQuickQRScanner();
+      }
+      if (originalCloseModal) originalCloseModal(id);
+    };
+
+    async function saveSale() {
+      const items = [];
+      let total = 0;
+      let hasError = false;
+      document.querySelectorAll('.sale-item').forEach(row => {
+        const select = row.querySelector('.si-product');
+        const opt = select.options[select.selectedIndex];
+        if (opt && opt.value) {
+          const id = opt.value;
+          const name = opt.text.split(' (')[0];
+          const qty = parseFloat(row.querySelector('.si-qty').value) || 0;
+          const maxQty = parseFloat(opt.getAttribute('data-qty')) || 0;
+          const price = parseFloat(row.querySelector('.si-price').value) || 0;
+          if (qty > maxQty) { hasError = true; Toast.warning(`Insufficient stock for ${name}`); }
+          if (qty > 0) { items.push({ id, name, quantity: qty, unitPrice: price, subtotal: qty * price }); total += qty * price; }
+        }
+      });
+      if (hasError) return;
+      if (!items.length) { Toast.warning('Add at least one item'); return; }
+
+      const data = {
+        items, total,
+        paymentMethod: document.getElementById('s_payment').value,
+        notes: document.getElementById('s_notes').value,
+        businessCategory: BIZ,
+        date: new Date().toISOString(),
+      };
+      try {
+        const res = await API.post('/api/sales', data);
+        if (res.success) {
+          Toast.success('Sale recorded!');
+          closeModal('saleModal');
+          loadData();
+          loadInventory();
+
+          // Auto generate receipt
+          setTimeout(() => printReceipt(res.data.id), 500);
+        }
+        else { Toast.error(res.message); }
+      } catch (e) { Toast.error('Error saving sale'); }
+    }
+
+    function printReceipt(id) {
+      const s = sales.find(x => x.id === id);
+      if (!s) return;
+      const w = window.open('', '_blank', 'width=400,height=600');
+      w.document.write(`<html><head><title>Receipt</title><style>body{font-family:'Courier New',monospace;padding:20px;font-size:12px;} .center{text-align:center;} hr{border:none;border-top:1px dashed #000;} table{width:100%;border-collapse:collapse;} td{padding:2px 4px;}</style></head><body>
+    <div class="center"><strong>PSAU - Office of Business Affairs</strong><br>${meta.name} Category<br>Receipt</div><hr>
+    <p>Date: ${new Date(s.date).toLocaleString()}<br>Payment: ${s.paymentMethod || 'cash'}</p><hr>
+    <table>${(s.items || []).map(i => '<tr><td>' + i.name + '</td><td>x' + i.quantity + '</td><td style="text-align:right">P' + parseFloat(i.subtotal || 0).toFixed(2) + '</td></tr>').join('')}
+    <tr><td colspan="3"><hr></td></tr>
+    <tr><td colspan="2"><strong>TOTAL</strong></td><td style="text-align:right"><strong>P${parseFloat(s.total || 0).toFixed(2)}</strong></td></tr></table>
+    <hr><div class="center">Thank you!<br>OBA System</div>
+  </body></html>`);
+      w.document.close(); w.print();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      buildNav();
+      document.getElementById('topbarTitle').textContent = meta.name + ' - Sales';
+      document.title = meta.name + ' Sales - OBA System';
+      loadInventory().then(() => loadData());
+      getCurrentUser().then(u => { if (u) { document.getElementById('sidebarName').textContent = u.name; document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role); document.getElementById('sidebarAvatar').textContent = u.name.charAt(0).toUpperCase(); } });
+    });
+
+    // Quick QR Scanner Logic
+    let quickHtml5QrScanner = null;
+    let quickScanCooldown = false;
+    let quickScannerSelectedCameraId = null;
+
+    function playAudioBeep(frequency, duration) {
+      try {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = context.createOscillator();
+        const gainNode = context.createGain();
+        osc.type = "sine";
+        osc.frequency.value = frequency;
+        gainNode.gain.setValueAtTime(0.08, context.currentTime);
+        osc.connect(gainNode);
+        gainNode.connect(context.destination);
+        osc.start();
+        osc.stop(context.currentTime + duration);
+      } catch (e) { }
+    }
+
+    let isQuickScannerRunning = false;
+
+    async function openQuickQRScanner() {
+      document.getElementById('quickScanResult').innerHTML = 'Ready to scan...';
+      openModal('quickQRModal');
+
+      if (isQuickScannerRunning && quickHtml5QrScanner) {
+        await stopQuickQRScanner();
+      }
+
+      try {
+        quickHtml5QrScanner = new Html5Qrcode("quickReader");
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        const cameras = await Html5Qrcode.getCameras();
+        const selectEl = document.getElementById('quickCameraSelect');
+        if (cameras && cameras.length > 0) {
+          selectEl.innerHTML = cameras.map(c => `<option value="${c.id}">${c.label || 'Camera ' + c.id}</option>`).join('');
+
+          let cameraId = quickScannerSelectedCameraId || cameras[0].id;
+          if (!quickScannerSelectedCameraId) {
+            const backCam = cameras.find(c => c.label.toLowerCase().includes('back'));
+            if (backCam) cameraId = backCam.id;
+          }
+
+          quickScannerSelectedCameraId = cameraId;
+          selectEl.value = cameraId;
+
+          await quickHtml5QrScanner.start(cameraId, config, onQuickScanSuccess);
+          isQuickScannerRunning = true;
+        } else {
+          throw new Error("No cameras found on device.");
+        }
+      } catch (err) {
+        console.error(err);
+        let errorMsg = '<div style="text-align:left; font-size:0.82rem; font-weight:normal; line-height:1.4; color:var(--danger); padding: 8px;">';
+        errorMsg += '<strong>Webcam connection failed.</strong><br><br>';
+        errorMsg += 'Common Windows solutions:<br>';
+        errorMsg += '• Check for a physical webcam privacy slider on your screen bezel.<br>';
+        errorMsg += '• Look for a webcam keyboard hotkey (e.g., Fn+F4 or Fn+F9) and press it.<br>';
+        errorMsg += '• Open Windows Settings > Camera and toggle the "Camera" app to ON to test it.<br>';
+        errorMsg += '• Close other apps that might be using the camera (Zoom, Teams, Discord, OBS).<br>';
+        errorMsg += '• Try selecting a different camera from the dropdown above.';
+        errorMsg += '</div>';
+        document.getElementById('quickScanResult').innerHTML = errorMsg;
+        isQuickScannerRunning = false;
+      }
+    }
+
+    async function changeQuickCamera(cameraId) {
+      quickScannerSelectedCameraId = cameraId;
+      await openQuickQRScanner();
+    }
+
+    async function stopQuickQRScanner() {
+      if (quickHtml5QrScanner && isQuickScannerRunning) {
+        try {
+          await quickHtml5QrScanner.stop();
+          quickHtml5QrScanner.clear();
+        } catch (err) {
+          console.error("Failed to stop scanner", err);
+        }
+      }
+      quickHtml5QrScanner = null;
+      isQuickScannerRunning = false;
+    }
+
+    async function onQuickScanSuccess(decodedText, decodedResult) {
+      if (quickScanCooldown) return;
+      quickScanCooldown = true;
+      setTimeout(() => { quickScanCooldown = false; }, 2500); // 2.5s cooldown
+
+      const productId = decodedText.trim();
+      const product = inventory.find(p => p.id === productId);
+      const resultDiv = document.getElementById('quickScanResult');
+
+      if (!product) {
+        resultDiv.innerHTML = `<span style="color:var(--danger)">Product not found in this category\'s inventory</span>`;
+        playAudioBeep(220, 0.25);
+        return;
+      }
+
+      if (parseInt(product.quantity || product.stock || 0) <= 0) {
+        resultDiv.innerHTML = `<span style="color:var(--danger)">Scanned: ${product.name} (Out of Stock)</span>`;
+        playAudioBeep(220, 0.25);
+        return;
+      }
+
+      resultDiv.innerHTML = `<span style="color:var(--green)">Recording sale for ${product.name}...</span>`;
+      playAudioBeep(880, 0.08);
+
+      const data = {
+        items: [{
+          id: product.id,
+          name: product.name,
+          quantity: 1,
+          unitPrice: product.sellingPrice,
+          subtotal: product.sellingPrice
+        }],
+        total: product.sellingPrice,
+        paymentMethod: 'cash',
+        notes: 'Auto-recorded via QR Webcam scan',
+        businessCategory: BIZ,
+      };
+
+      try {
+        const res = await API.post('/api/sales', data);
+        if (res.success) {
+          resultDiv.innerHTML = `<span style="color:var(--green)">✓ Recorded: 1x ${product.name} (₱${product.sellingPrice})</span>`;
+          playAudioBeep(1200, 0.12);
+          Toast.success(`Recorded: 1x ${product.name}`);
+          loadData();
+          loadInventory();
+        } else {
+          resultDiv.innerHTML = `<span style="color:var(--danger)">Error: ${res.message}</span>`;
+          playAudioBeep(220, 0.25);
+        }
+      } catch (e) {
+        resultDiv.innerHTML = `<span style="color:var(--danger)">Failed to save sale</span>`;
+        playAudioBeep(220, 0.25);
+      }
+    }
+  </script>
+
+  <!-- Quick QR Modal -->
+  <div class="modal-overlay" id="quickQRModal">
+    <div class="modal" style="max-width:420px; text-align:center;">
+      <div class="modal-header">
+        <h3 style="margin: 0 auto;">Quick Scan & Auto-Record Sale</h3>
+      </div>
+      <div style="padding: 16px;">
+        <p style="color:var(--gray-600); font-size:0.88rem; margin-bottom:16px;">Scan a product's QR code via webcam to
+          instantly log a sale (1 unit, cash payment).</p>
+        <div style="margin-bottom: 12px;">
+          <select id="quickCameraSelect" class="form-control"
+            style="max-width: 250px; margin: 0 auto; display: inline-block; font-size: 0.85rem; padding: 4px 8px; height: auto;"
+            onchange="changeQuickCamera(this.value)"></select>
+        </div>
+        <div id="quickReader"
+          style="width: 100%; border-radius: 8px; overflow: hidden; border:1px solid var(--gray-200); margin-bottom:16px;">
+        </div>
+        <div id="quickScanResult"
+          style="padding: 12px; border-radius: 8px; background: var(--gray-100); font-weight: 600; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+          Ready to scan...
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: center;">
+        <button class="btn btn-outline" onclick="closeModal('quickQRModal')">Close Scanner</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

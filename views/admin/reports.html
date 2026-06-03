@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .sidebar-logo-area { display: flex; flex-direction: column; align-items: center; padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo-area .org-name { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.7); text-align: center; line-height: 1.4; }
+    .sidebar-nav .nav-item.active { background: linear-gradient(90deg, #3a8c3b, #2d6a2e); color: var(--white); border-left-color: var(--white); }
+    .topbar-green { background: linear-gradient(90deg, #2d6a2e, #3a8c3b); color: var(--white); }
+    .topbar-green .topbar-title { color: var(--white); }
+    .profile-btn { background: rgba(255,255,255,0.15); border: none; color: var(--white); padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: var(--font-main); }
+    .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .report-line { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
+    .report-line:last-child { border-bottom: none; }
+    .report-line.total { font-weight: 800; border-top: 2px solid var(--black); border-bottom: 2px solid var(--black); background: var(--gray-100); margin: 4px -20px; padding: 12px 20px; }
+    .report-line .lbl { font-size: 0.88rem; }
+    .report-line .val { font-size: 0.88rem; font-weight: 700; }
+    .report-line .val.green { color: var(--green); }
+    .report-line .val.danger { color: var(--danger); }
+    
+    /* Premium Admin Reports Layout */
+    .report-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--gray-200);
+      padding-bottom: 0px;
+    }
+    
+    .report-tab {
+      padding: 12px 24px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--gray-500);
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.3s ease;
+      position: relative;
+      background: transparent;
+      border: none;
+      font-family: var(--font-main);
+    }
+    
+    .report-tab:hover {
+      color: var(--green);
+      background: var(--gray-50);
+    }
+    
+    .report-tab.active {
+      color: var(--green);
+      background: var(--green-light);
+    }
+    
+    .report-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--green);
+      border-radius: 2px 2px 0 0;
+    }
+    
+    /* Simulated Premium A4 Report Document Sheet */
+    .report-sheet {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.03);
+      padding: 36px;
+      max-width: 800px;
+      margin: 10px auto 20px;
+      font-family: var(--font-main);
+      position: relative;
+    }
+
+    .report-sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--green);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+
+    .report-sheet-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .report-sheet-logo img {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+    }
+
+    .report-sheet-title-group {
+      text-align: right;
+    }
+
+    .report-sheet-title-group h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--gray-800);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .report-sheet-title-group .org-sub {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--green);
+      margin-top: 2px;
+    }
+
+    .report-sheet-title-group .report-type {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: 6px;
+      color: var(--gray-700);
+    }
+
+    .report-sheet-meta {
+      display: flex;
+      justify-content: space-between;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-size: 0.8rem;
+      color: var(--gray-600);
+    }
+
+    /* Premium Ledger Row styles */
+    .ledger-row-sub {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.88rem;
+    }
+
+    .ledger-row-sub.indent {
+      padding-left: 24px;
+      color: var(--gray-600);
+    }
+
+    .ledger-row-sub.total {
+      font-weight: 700;
+      background: var(--gray-50);
+      border-top: 1.5px solid var(--gray-800);
+      border-bottom: 1.5px solid var(--gray-800);
+      margin-top: 4px;
+    }
+
+    .ledger-row-sub.grand-total {
+      font-size: 1.05rem;
+      font-weight: 800;
+      border-top: 2px solid var(--gray-900);
+      border-bottom: 4px double var(--gray-900); /* CPA double underline */
+      background: var(--green-light);
+      margin-top: 8px;
+      padding: 12px;
+    }
+
+    .report-sheet-signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--gray-300);
+    }
+
+    .sig-block {
+      text-align: center;
+      width: 45%;
+    }
+
+    .sig-line {
+      width: 100%;
+      height: 1px;
+      background: var(--gray-900);
+      margin-bottom: 6px;
+      margin-top: 30px;
+    }
+
+    .sig-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      text-transform: uppercase;
+    }
+
+    .sig-title {
+      font-size: 0.68rem;
+      color: var(--gray-500);
+    }
+
+    /* Custom print layout rules */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .no-print, .sidebar, .topbar, .filters-bar, .report-tabs, .modal-overlay, .topbar-actions {
+        display: none !important;
+      }
+      .app-layout {
+        display: block !important;
+      }
+      .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .report-sheet {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+      .page-content {
+        padding: 0 !important;
+      }
+    }
+
+    @media (max-width: 1024px) { 
+      .report-grid { grid-template-columns: 1fr; }
+      .report-sheet-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .report-sheet-title-group {
+        text-align: left;
+      }
+    }
+    .is-viewer .btn-send-alert { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/admin/dashboard"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+      <a class="nav-item" href="/admin/business"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg></span> Business</a>
+      <a class="nav-item" href="/admin/inventory"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+      <a class="nav-item" href="/admin/sales"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+      <a class="nav-item active" href="/admin/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+      <a class="nav-item" href="/admin/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
+      <a class="nav-item" href="/admin/users"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Users</a>
+      <a class="nav-item" href="/admin/settings"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Settings</a>
+      <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">A</div>
+        <div><div class="sidebar-user-name">Admin1 (Admin)</div><div class="sidebar-user-role">Logged in as:</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title">Financial Reports</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" id="notifCount" style="display:none">0</span>
+          <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <button class="profile-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Profile</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- Filters -->
+      <div class="filters-bar">
+        <div class="filter-item"><div class="filter-label">Business</div>
+          <select id="fBiz" class="filter-control" onchange="loadReports()">
+            <option value="RENTAL">Rental</option>
+            <option value="BUSINESS">Business</option>
+            <option value="AGRI">Agriculture</option>
+            <option value="NON_AGRI">Non-Agriculture</option>
+          </select>
+        </div>
+        <div class="filter-item"><div class="filter-label">Period</div>
+          <select id="fPeriod" class="filter-control" onchange="loadReports()"><option value="month">This Month</option><option value="week">This Week</option><option value="year">This Year</option></select>
+        </div>
+        <div class="export-group" style="margin-top:18px; display:flex; gap:10px;">
+          <button class="btn btn-outline btn-sm" style="border-color:var(--yellow-dark);color:var(--yellow-dark)" onclick="openAlertModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Send Deadline Reminder
+          </button>
+          <button class="btn-export pdf" onclick="exportReportPDF()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Export PDF</button>
+          <button class="btn-export excel" onclick="exportReportCSV()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Report Tabs -->
+      <div class="report-tabs">
+        <div class="report-tab active" onclick="switchTab('summary',this)">Summary</div>
+        <div class="report-tab" onclick="switchTab('income',this)">Income Statement</div>
+        <div class="report-tab" onclick="switchTab('cashflow',this)">Cash Flow</div>
+        <div class="report-tab" onclick="switchTab('balance',this)">Balance Summary</div>
+        <div class="report-tab" onclick="switchTab('comparison',this)">Comparison</div>
+      </div>
+
+      <!-- Summary Tab -->
+      <div id="tab-summary" class="tab-panel">
+        <div class="kpi-grid" style="grid-template-columns: repeat(4,1fr); margin-bottom:20px">
+          <div class="kpi-card yellow"><div class="kpi-label">Total Revenue</div><div class="kpi-value" id="rRevenue">—</div></div>
+          <div class="kpi-card danger"><div class="kpi-label">Total Expenses</div><div class="kpi-value" id="rExpenses" style="color:var(--danger)">—</div></div>
+          <div class="kpi-card green"><div class="kpi-label">Net Profit</div><div class="kpi-value" id="rProfit" style="color:var(--green)">—</div></div>
+          <div class="kpi-card black"><div class="kpi-label">ROI</div><div class="kpi-value" id="rROI">—</div></div>
+        </div>
+        <div class="report-grid">
+          <div class="card"><div class="card-header"><span class="card-title">Revenue vs Expenses</span></div><div style="position:relative;height:250px;width:100%"><canvas id="revExpChart"></canvas></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">Expense Breakdown</span></div><div style="position:relative;height:250px;width:100%"><canvas id="expBreakChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- Income Statement Tab -->
+      <div id="tab-income" class="tab-panel" style="display:none">
+        <div class="card"><div class="card-header"><span class="card-title">Income Statement</span></div><div id="incomeBody"></div></div>
+      </div>
+
+      <!-- Cash Flow Tab -->
+      <div id="tab-cashflow" class="tab-panel" style="display:none">
+        <div class="card"><div class="card-header"><span class="card-title">Cash Flow Statement</span></div><div id="cashFlowBody"></div></div>
+      </div>
+
+      <!-- Balance Summary Tab -->
+      <div id="tab-balance" class="tab-panel" style="display:none">
+        <div class="card"><div class="card-header"><span class="card-title">Balance Summary</span></div><div id="balanceBody"></div></div>
+      </div>
+
+      <!-- Cross-Business Comparison Tab -->
+      <div id="tab-comparison" class="tab-panel" style="display:none">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Cross-Business Financial Comparison</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Category</th><th>Revenue</th><th>Expenses</th><th>Profit</th><th>Margin</th></tr></thead><tbody id="compBody"></tbody></table></div>
+        </div>
+        <div class="card" style="margin-top:20px"><div class="card-header"><span class="card-title">Revenue Distribution</span></div><div style="position:relative;height:250px;width:100%"><canvas id="compChart"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Send Alert Modal -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title">Send Deadline Reminder</span>
+      <button class="modal-close" onclick="closeModal('alertModal')">&times;</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Alert Type</label>
+      <select id="a_type" class="form-control" disabled>
+        <option value="system">Deadline Reminder</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Target Business Unit</label>
+      <select id="a_biz" class="form-control">
+        <option value="all">All Business Categories</option>
+        <option value="RENTAL">Rental</option>
+        <option value="BUSINESS">Business</option>
+        <option value="AGRI">Agriculture</option>
+        <option value="NON_AGRI">Non-Agriculture</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reminder Message *</label>
+      <textarea id="a_msg" class="form-control" placeholder="e.g. Please submit your monthly financial reports by Friday 5 PM."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Priority</label>
+      <select id="a_priority" class="form-control">
+        <option value="info">Info</option>
+        <option value="warning" selected>Warning</option>
+        <option value="critical">Critical</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('alertModal')">Cancel</button>
+      <button class="btn btn-primary btn-send-alert" onclick="sendAlert()">Send Alert</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let reportData = {};
+let charts = {};
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = 'block';
+  el.classList.add('active');
+}
+
+async function loadReports() {
+  const biz = document.getElementById('fBiz').value;
+  const period = document.getElementById('fPeriod').value;
+  try {
+    const [summary, income, cashflow, balance, comp] = await Promise.all([
+      API.get(`/api/reports/${biz}/summary?period=${period}`),
+      API.get(`/api/reports/${biz}/income-statement?period=${period}`),
+      API.get(`/api/reports/${biz}/cash-flow?period=${period}`),
+      API.get(`/api/reports/${biz}/balance-summary`),
+      API.get('/api/reports/all/comparison'),
+    ]);
+    if (summary.success) renderSummary(summary.data);
+    if (income.success) renderIncome(income.data);
+    if (cashflow.success) renderCashFlow(cashflow.data);
+    if (balance.success) renderBalance(balance.data);
+    if (comp.success) renderComparison(comp.data);
+    reportData = { summary: summary.data, income: income.data, cashflow: cashflow.data, balance: balance.data, comp: comp.data };
+  } catch(e) { Toast.error('Error loading reports'); }
+}
+
+function renderSummary(d) {
+  document.getElementById('rRevenue').textContent = fmt.currency(d.revenue);
+  document.getElementById('rExpenses').textContent = fmt.currency(d.expenses);
+  document.getElementById('rProfit').textContent = fmt.currency(d.profit);
+  document.getElementById('rROI').textContent = fmt.percent(d.roi);
+  // Charts
+  if (charts.revExp) charts.revExp.destroy();
+  charts.revExp = new Chart(document.getElementById('revExpChart'), {
+    type: 'bar', data: { labels: ['Revenue','Expenses','Net Profit'], datasets: [{ data: [d.revenue, d.expenses, d.profit], backgroundColor: ['#D4A915','#E53E3E','#2d6a2e'], borderRadius: 6 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₱'+(v/1000).toFixed(0)+'k' } } } }
+  });
+  if (charts.expBreak) charts.expBreak.destroy();
+  const eb = d.expenseBreakdown || { utilities: 18000, suppliers: 72000, salary: 45000, other: 7000 };
+  charts.expBreak = new Chart(document.getElementById('expBreakChart'), {
+    type: 'doughnut', data: { labels: ['Utilities','Suppliers','Salary','Other'], datasets: [{ data: [eb.utilities, eb.suppliers, eb.salary, eb.other], backgroundColor: ['#6B3FA0','#2d6a2e','#D4A915','#666'] }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+  });
+}
+
+function getReportHeader(title) {
+  const bizName = document.getElementById('fBiz').selectedOptions[0].text;
+  const period = document.getElementById('fPeriod').selectedOptions[0].text;
+  const now = new Date();
+  return `
+    <div class="report-sheet-header">
+      <div class="report-sheet-logo">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        <div>
+          <h4 style="margin:0; font-size:0.9rem; font-weight:800; color:var(--gray-800);">Pampanga State Agricultural University</h4>
+          <span style="font-size:0.72rem; color:var(--gray-500); display:block; margin-top:2px;">Pacung, San Luis, Pampanga</span>
+        </div>
+      </div>
+      <div class="report-sheet-title-group">
+        <h3>Office of Business Affairs</h3>
+        <div class="org-sub">${bizName} Category</div>
+        <div class="report-type">${title}</div>
+      </div>
+    </div>
+    
+    <div class="report-sheet-meta">
+      <div><strong>Reporting Period:</strong> ${period}</div>
+      <div><strong>Audited By:</strong> Administrator</div>
+      <div><strong>Audit Date:</strong> ${now.toLocaleDateString('en-PH')} ${now.toLocaleTimeString('en-PH', {hour:'2-digit', minute:'2-digit'})}</div>
+    </div>
+  `;
+}
+
+function getReportSignatures() {
+  return `
+    <div class="report-sheet-signatures">
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Prepared & Audited By</div>
+        <div class="sig-title">System Administrator</div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Noted By</div>
+        <div class="sig-title">OBA Director / Representative</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderIncome(d) {
+  document.getElementById('incomeBody').innerHTML = `
+    <div class="report-sheet">
+      ${getReportHeader('Statement of Income')}
+      <div style="margin-top:10px;">
+        <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">I. Revenue & Receipts</h4>
+        <div class="ledger-row-sub indent"><span class="lbl">Sales Revenue</span><span class="val">${fmt.currency(d.salesRevenue)}</span></div>
+        <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Other Supporting Income</span><span class="val">${fmt.currency(d.otherIncome)}</span></div>
+        <div class="ledger-row-sub total"><span class="lbl">Total Gross Revenue</span><span class="val" style="color:var(--green)">${fmt.currency(d.totalRevenue)}</span></div>
+        
+        <h4 style="margin: 24px 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">II. Operating Expenses</h4>
+        <div class="ledger-row-sub indent"><span class="lbl">Cost of Goods Sold (Supplies)</span><span class="val">${fmt.currency(d.costOfGoods)}</span></div>
+        <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">General & Operating Expenses</span><span class="val">${fmt.currency(d.operatingExpenses)}</span></div>
+        <div class="ledger-row-sub total"><span class="lbl">Total Expenditures</span><span class="val" style="color:var(--danger)">${fmt.currency(d.totalExpenses)}</span></div>
+        
+        <div class="ledger-row-sub grand-total" style="margin-top:30px;">
+          <span class="lbl">NET PROFIT / INCOME</span>
+          <span class="val" style="color:${d.netIncome>=0?'var(--green)':'var(--danger)'}">${fmt.currency(d.netIncome)}</span>
+        </div>
+      </div>
+      ${getReportSignatures()}
+    </div>
+  `;
+}
+
+function renderCashFlow(d) {
+  document.getElementById('cashFlowBody').innerHTML = `
+    <div class="report-sheet">
+      ${getReportHeader('Statement of Cash Flows')}
+      <div style="margin-top:10px;">
+        <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">I. Cash Flow from Operating Activities</h4>
+        <div class="ledger-row-sub indent"><span class="lbl">Cash Receipts from Sales</span><span class="val" style="color:var(--green)">+ ${fmt.currency(d.operatingActivities.salesReceipts)}</span></div>
+        <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Cash Payments for General Expenses</span><span class="val" style="color:var(--danger)">- ${fmt.currency(d.operatingActivities.expensePayments)}</span></div>
+        <div class="ledger-row-sub total"><span class="lbl">Net Cash from Operating Activities</span><span class="val" style="color:var(--green)">${fmt.currency(d.operatingActivities.netOperating)}</span></div>
+        
+        <h4 style="margin: 24px 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">II. Cash Flow from Investing Activities</h4>
+        <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Acquisition of Equipment / Fixed Assets</span><span class="val" style="color:var(--danger)">- ${fmt.currency(d.investingActivities.equipmentPurchase)}</span></div>
+        
+        <div class="ledger-row-sub total" style="margin-top:20px;"><span class="lbl">Opening Cash Balance</span><span class="val">${fmt.currency(d.openingBalance)}</span></div>
+        <div class="ledger-row-sub grand-total" style="margin-top:20px;">
+          <span class="lbl">NET CLOSING CASH BALANCE</span>
+          <span class="val" style="color:var(--green)">${fmt.currency(d.closingBalance)}</span>
+        </div>
+      </div>
+      ${getReportSignatures()}
+    </div>
+  `;
+}
+
+function renderBalance(d) {
+  document.getElementById('balanceBody').innerHTML = `
+    <div class="report-sheet">
+      ${getReportHeader('Balance Sheet Statement')}
+      <div style="margin-top:10px;">
+        <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">I. Assets</h4>
+        <div class="ledger-row-sub indent"><span class="lbl">Cash and Cash Equivalents</span><span class="val">${fmt.currency(d.assets.cash)}</span></div>
+        <div class="ledger-row-sub indent"><span class="lbl">Inventory Asset Value</span><span class="val">${fmt.currency(d.assets.inventory)}</span></div>
+        <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Outstanding Receivables</span><span class="val">${fmt.currency(d.assets.receivables)}</span></div>
+        <div class="ledger-row-sub total"><span class="lbl">Total Assets</span><span class="val" style="color:var(--green)">${fmt.currency(d.assets.totalAssets)}</span></div>
+        
+        <h4 style="margin: 24px 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">II. Liabilities</h4>
+        <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Outstanding Accounts Payable</span><span class="val" style="color:var(--danger)">${fmt.currency(d.liabilities.payables)}</span></div>
+        <div class="ledger-row-sub total"><span class="lbl">Total Liabilities</span><span class="val" style="color:var(--danger)">${fmt.currency(d.liabilities.totalLiabilities)}</span></div>
+        
+        <div class="ledger-row-sub grand-total" style="margin-top:30px;">
+          <span class="lbl">OWNER'S EQUITY (Net Assets Valuation)</span>
+          <span class="val" style="color:var(--green)">${fmt.currency(d.equity)}</span>
+        </div>
+      </div>
+      ${getReportSignatures()}
+    </div>
+  `;
+}
+
+function renderComparison(d) {
+  document.getElementById('compBody').innerHTML = d.comparison.map(c => `
+    <tr><td class="fw-bold">${c.category}</td><td>${fmt.currency(c.revenue)}</td><td>${fmt.currency(c.expenses)}</td>
+    <td class="text-green fw-bold">${fmt.currency(c.profit)}</td><td>${c.margin}</td></tr>`).join('') +
+    `<tr class="comparison-row" style="border-top:2px solid #000; font-weight: 800;"><td>TOTAL</td><td>${fmt.currency(d.totals.revenue)}</td><td>${fmt.currency(d.totals.expenses)}</td><td class="text-green">${fmt.currency(d.totals.profit)}</td><td>${d.totals.margin}</td></tr>`;
+  if (charts.comp) charts.comp.destroy();
+  charts.comp = new Chart(document.getElementById('compChart'), {
+    type: 'pie', data: { labels: d.comparison.map(c=>c.category), datasets: [{ data: d.comparison.map(c=>c.revenue), backgroundColor: ['#6B3FA0','#2d6a2e','#D4A915','#1A1A1A'] }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+  });
+}
+
+function exportReportPDF() {
+  const biz = document.getElementById('fBiz').selectedOptions[0].text;
+  const d = reportData.summary || {};
+  const now = new Date();
+  
+  const pdfTemplate = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+      <div style="border-bottom: 2px solid #2d6a2e; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <h2 style="margin: 0; color: #2d6a2e; font-size: 1.4rem;">PAMPANGA STATE AGRICULTURAL UNIVERSITY</h2>
+          <h3 style="margin: 4px 0 0; color: #555; font-size: 1rem; font-weight: normal;">Office of Business Affairs</h3>
+        </div>
+        <div style="text-align: right;">
+          <h4 style="margin: 0; color: #777;">AUDITED REPORT</h4>
+          <span style="font-size: 0.8rem; color: #888;">Generated: ${now.toLocaleDateString()}</span>
+        </div>
+      </div>
+      
+      <div style="background: #f9f9f9; border: 1px solid #ddd; padding: 10px 15px; border-radius: 6px; margin-bottom: 24px; font-size: 0.85rem;">
+        <strong>Target Unit:</strong> ${biz} Category &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Period:</strong> Cumulative Annual Summary
+      </div>
+      
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+          <tr style="background-color: #2d6a2e; color: #ffffff; text-align: left;">
+            <th style="padding: 12px; font-size: 0.9rem;">Financial Metric</th>
+            <th style="padding: 12px; font-size: 0.9rem; text-align: right;">Recorded Value (PHP)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 12px; font-size: 0.9rem;">Total Registered Gross Revenue</td>
+            <td style="padding: 12px; font-size: 0.9rem; text-align: right; font-weight: bold; color: #2d6a2e;">₱${(d.revenue||0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 12px; font-size: 0.9rem;">Total Registered Expenses & COGS</td>
+            <td style="padding: 12px; font-size: 0.9rem; text-align: right; font-weight: bold; color: #c53030;">₱${(d.expenses||0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+          </tr>
+          <tr style="border-bottom: 2px solid #333; background-color: #f7fafc;">
+            <td style="padding: 12px; font-size: 1rem; font-weight: bold;">NET OPERATING INCOME / PROFIT</td>
+            <td style="padding: 12px; font-size: 1rem; font-weight: bold; text-align: right; color: #2d6a2e; border-bottom: 4px double #333;">₱${(d.profit||0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 12px; font-size: 0.9rem;">Annualized Return on Investment (ROI)</td>
+            <td style="padding: 12px; font-size: 0.9rem; text-align: right; font-weight: bold;">${(d.roi||0).toFixed(2)}%</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 50px; border-top: 1px dashed #ccc; padding-top: 20px; display: flex; justify-content: space-between;">
+        <div style="width: 45%; text-align: center;">
+          <div style="border-bottom: 1px solid #333; margin-top: 30px;"></div>
+          <span style="font-size: 0.8rem; font-weight: bold; display: block; margin-top: 5px;">AUDITED BY</span>
+          <span style="font-size: 0.75rem; color: #777;">System Administrator</span>
+        </div>
+        <div style="width: 45%; text-align: center;">
+          <div style="border-bottom: 1px solid #333; margin-top: 30px;"></div>
+          <span style="font-size: 0.8rem; font-weight: bold; display: block; margin-top: 5px;">APPROVED BY</span>
+          <span style="font-size: 0.75rem; color: #777;">OBA Representative Director</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  exportToPDF('Financial Report - ' + biz, pdfTemplate);
+}
+
+function exportReportCSV() {
+  const comp = reportData.comp;
+  if (comp && comp.comparison) { exportToCSV(comp.comparison, 'OBA_Financial_Comparison'); }
+  else { Toast.warning('No data to export'); }
+}
+
+function openAlertModal() {
+  document.getElementById('a_msg').value = 'Reminder: Monthly financial reports and inventory summaries are due this week. Please ensure all records are updated and submitted on time.';
+  document.getElementById('a_biz').value = 'all';
+  document.getElementById('a_priority').value = 'warning';
+  openModal('alertModal');
+}
+
+async function sendAlert() {
+  const data = {
+    type: 'deadline',
+    title: 'Report Submission Deadline',
+    message: document.getElementById('a_msg').value.trim(),
+    businessId: document.getElementById('a_biz').value === 'all' ? null : document.getElementById('a_biz').value,
+    priority: document.getElementById('a_priority').value
+  };
+  
+  if (!data.message) {
+    Toast.warning('Message is required');
+    return;
+  }
+  
+  try {
+    const res = await API.post('/api/admin/notifications', data);
+    if (res.success) {
+      Toast.success('Deadline reminder broadcasted to employees!');
+      closeModal('alertModal');
+    } else {
+      Toast.error(res.message);
+    }
+  } catch(e) {
+    Toast.error('Failed to send alert');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('biz')) document.getElementById('fBiz').value = p.get('biz');
+  loadReports();
+  getCurrentUser().then(u => {
+    if(u){
+      document.querySelector('.sidebar-user-name').textContent = u.name;
+      document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role);
+      document.querySelector('.sidebar-avatar').textContent = u.name.charAt(0);
+      // Viewer role enforcement
+      if (u.role === 'viewer') {
+        document.querySelectorAll('.sidebar-nav a').forEach(a => {
+          const href = a.getAttribute('href') || '';
+          if (href.includes('/notifications') || href.includes('/users') || href.includes('/settings')) {
+            a.style.display = 'none';
+          }
+        });
+        document.querySelectorAll('.notif-bell, .notif-dropdown').forEach(el => el.remove());
+        const topbar = document.querySelector('.topbar');
+        if (topbar) {
+          const badge = document.createElement('span');
+          badge.textContent = 'VIEW ONLY';
+          badge.style.cssText = 'background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:12px;font-size:0.72rem;font-weight:700;letter-spacing:0.5px;margin-left:12px';
+          topbar.querySelector('.flex-c').appendChild(badge);
+        }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>

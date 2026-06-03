@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Business — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { background: var(--black); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: var(--font-main); }
+    .biz-wrap { background: var(--white); border-radius: var(--radius); padding: 48px; max-width: 640px; width: 90%; text-align: center; box-shadow: var(--shadow-lg); }
+    .biz-wrap img { width: 64px; height: 64px; object-fit: contain; margin-bottom: 16px; }
+    .biz-wrap h2 { font-size: 1.5rem; margin-bottom: 4px; color: var(--black); }
+    .biz-wrap p { font-size: 0.9rem; color: var(--gray-600); margin-bottom: 28px; }
+    .biz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .biz-option {
+      background: var(--white); border: 2px solid var(--gray-200); border-radius: var(--radius);
+      padding: 24px 16px; cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .biz-option:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .biz-option .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+    .biz-option .name { font-weight: 700; font-size: 1rem; color: var(--black); }
+    .biz-option .desc { font-size: 0.78rem; color: var(--gray-500); margin-top: 4px; }
+    .logout-link { margin-top: 20px; display: inline-block; font-size: 0.85rem; color: var(--gray-400); text-decoration: none; }
+    .logout-link:hover { color: var(--danger); }
+    @media (max-width: 480px) { .biz-grid { grid-template-columns: 1fr; } .biz-wrap { padding: 24px; } }
+  </style>
+</head>
+<body>
+  <div class="biz-wrap">
+    <img src="/images/psaulogo.png" alt="PSAU Logo">
+    <h2>Select Business Unit</h2>
+    <p id="greeting">Welcome! Choose which business category you want to access.</p>
+    <div class="biz-grid" id="bizGrid"></div>
+    <a href="/logout" class="logout-link">Logout</a>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    const CATS = [
+      { id: 'RENTAL', name: 'Rental', icon: `<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`, color: '#6B3FA0', bg: '#EDE7F6', desc: 'Rental services and property management' },
+      { id: 'BUSINESS', name: 'Business', icon: `<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`, color: '#2d6a2e', bg: '#E8F5E9', desc: 'Commercial and trading operations' },
+      { id: 'AGRI', name: 'Agriculture', icon: `<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`, color: '#D4A915', bg: '#FFF8E1', desc: 'Agricultural produce and farming' },
+      { id: 'NON_AGRI', name: 'Non-Agriculture', icon: `<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`, color: '#1A1A1A', bg: '#F5F5F5', desc: 'Non-agricultural products and services' },
+    ];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) { window.location.href = '/login'; return; }
+
+      const user = currentUser.user || currentUser;
+      const access = user.businessAccess || [];
+
+      // Intercept with pre-selected category from login role flow
+      const savedCategory = sessionStorage.getItem('selectedCategory');
+      const savedRole = sessionStorage.getItem('selectedRole');
+      if (savedCategory && (user.role === 'employee' || user.role === 'manager' || savedRole === 'employee' || savedRole === 'manager')) {
+        // Double check access controls
+        if (user.role === 'super_admin' || user.role === 'admin' || access.includes('all') || access.includes(savedCategory)) {
+          goToBusiness(savedCategory);
+          return;
+        }
+      }
+
+      let available;
+      if (user.role === 'super_admin' || user.role === 'admin' || access.includes('all')) {
+        available = CATS;
+      } else {
+        available = CATS.filter(c => access.includes(c.id));
+      }
+
+      if (available.length === 0) available = CATS;
+
+      const grid = document.getElementById('bizGrid');
+      grid.innerHTML = available.map(c => `
+        <div class="biz-option" onclick="goToBusiness('${c.id}')">
+          <div class="icon" style="background:${c.bg};color:${c.color}">${c.icon}</div>
+          <div class="name">${c.name}</div>
+          <div class="desc">${c.desc}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('greeting').textContent = 'Welcome, ' + user.name + '! Choose which business category you want to access.';
+    });
+
+    window.goToBusiness = function(bizId) {
+      getCurrentUser().then(u => {
+        const user = u.user || u;
+        if (user.role === 'super_admin' || user.role === 'admin' || user.role === 'viewer') {
+          window.location.href = '/admin/dashboard?biz=' + bizId;
+        } else {
+          window.location.href = '/employee/dashboard?biz=' + bizId;
+        }
+      });
+    };
+  </script>
+</body>
+</html>

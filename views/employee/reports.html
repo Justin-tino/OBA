@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .report-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .report-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    }
+
+    .report-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gray-200);
+      transition: background-color 0.3s ease;
+    }
+
+    .report-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      border-color: var(--green);
+    }
+
+    .report-card:hover::before {
+      background: var(--green);
+    }
+
+    .report-card .rc-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--green-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .report-card:hover .rc-icon-wrapper {
+      transform: scale(1.1);
+      background: var(--green);
+    }
+
+    .report-card:hover .rc-icon-wrapper svg {
+      stroke: var(--white);
+    }
+
+    .report-card .rc-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      color: var(--gray-800);
+    }
+
+    .report-card .rc-desc {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+      line-height: 1.4;
+    }
+
+    /* Simulated Premium A4 Report Document Sheet */
+    .report-sheet {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.03);
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto 30px;
+      font-family: var(--font-main);
+      position: relative;
+    }
+
+    .report-sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--green);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    .report-sheet-logo {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .report-sheet-logo img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+
+    .report-sheet-title-group {
+      text-align: right;
+    }
+
+    .report-sheet-title-group h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--gray-800);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .report-sheet-title-group .org-sub {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--green);
+      margin-top: 2px;
+    }
+
+    .report-sheet-title-group .report-type {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 8px;
+      color: var(--gray-700);
+    }
+
+    .report-sheet-meta {
+      display: flex;
+      justify-content: space-between;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 0.82rem;
+      color: var(--gray-600);
+    }
+
+    /* Premium Ledger Table UI */
+    .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .ledger-table th {
+      background: var(--gray-900);
+      color: var(--white);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      text-align: left;
+    }
+
+    .ledger-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.88rem;
+      color: var(--gray-800);
+    }
+
+    .ledger-row-sub {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.88rem;
+    }
+
+    .ledger-row-sub.indent {
+      padding-left: 28px;
+      color: var(--gray-600);
+    }
+
+    .ledger-row-sub.total {
+      font-weight: 700;
+      background: var(--gray-50);
+      border-top: 1.5px solid var(--gray-800);
+      border-bottom: 1.5px solid var(--gray-800);
+      margin-top: 4px;
+    }
+
+    .ledger-row-sub.grand-total {
+      font-size: 1.05rem;
+      font-weight: 800;
+      border-top: 2px solid var(--gray-900);
+      border-bottom: 4px double var(--gray-900); /* CPA double underline */
+      background: var(--green-light);
+      margin-top: 8px;
+      padding: 14px;
+    }
+
+    .report-sheet-signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px dashed var(--gray-300);
+    }
+
+    .sig-block {
+      text-align: center;
+      width: 45%;
+    }
+
+    .sig-line {
+      width: 100%;
+      height: 1px;
+      background: var(--gray-900);
+      margin-bottom: 8px;
+      margin-top: 40px;
+    }
+
+    .sig-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      text-transform: uppercase;
+    }
+
+    .sig-title {
+      font-size: 0.7rem;
+      color: var(--gray-500);
+      margin-top: 2px;
+    }
+
+    /* Print styling rules */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .app-layout {
+        display: block !important;
+      }
+      .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .report-sheet {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+      .page-content {
+        padding: 0 !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .report-cards {
+        grid-template-columns: 1fr;
+      }
+      .report-sheet {
+        padding: 20px 16px;
+      }
+      .report-sheet-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .report-sheet-title-group {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar no-print" id="sidebar">
+    <div class="sidebar-logo-area"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg><div class="org-name">Office of Business Affairs</div></div>
+    <nav class="sidebar-nav" id="empNav"></nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-avatar" id="sidebarAvatar">E</div><div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div></div></div>
+  </aside>
+  <div class="main-content">
+    <div class="topbar topbar-green no-print">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title" id="topbarTitle">Reports</span>
+      </div>
+    </div>
+    <div class="page-content">
+      <h2 class="no-print" style="margin-bottom:6px; font-weight: 800; color: var(--gray-800);" id="reportHeading">Generate Reports</h2>
+      <p class="no-print" style="color:var(--gray-500);margin-bottom:24px">Select a report category below to view and generate official printed reports.</p>
+
+      <div class="report-cards no-print">
+        <div class="report-card" onclick="genReport('income')">
+          <div class="rc-icon-wrapper">
+            <svg width="24" height="24" fill="none" stroke="var(--green)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="rc-title">Income Statement</div><div class="rc-desc">Revenue and income summary</div>
+        </div>
+        <div class="report-card" onclick="genReport('balance')">
+          <div class="rc-icon-wrapper">
+            <svg width="24" height="24" fill="none" stroke="var(--yellow-dark)" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="rc-title">Balance Summary</div><div class="rc-desc">Assets vs liabilities overview</div>
+        </div>
+        <div class="report-card" onclick="genReport('cashflow')">
+          <div class="rc-icon-wrapper">
+            <svg width="24" height="24" fill="none" stroke="var(--danger)" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <div class="rc-title">Cash Flow Report</div><div class="rc-desc">Income vs expenses over time</div>
+        </div>
+        <div class="report-card" onclick="genReport('sales')">
+          <div class="rc-icon-wrapper">
+            <svg width="24" height="24" fill="none" stroke="#6B3FA0" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          </div>
+          <div class="rc-title">Sales Summary</div><div class="rc-desc">Daily / weekly / monthly sales</div>
+        </div>
+        <div class="report-card" onclick="genReport('inventory')">
+          <div class="rc-icon-wrapper">
+            <svg width="24" height="24" fill="none" stroke="var(--green)" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div class="rc-title">Inventory Report</div><div class="rc-desc">Stock levels and valuation</div>
+        </div>
+        <div class="report-card" onclick="genReport('profitloss')">
+          <div class="rc-icon-wrapper">
+            <svg width="24" height="24" fill="none" stroke="var(--black)" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="rc-title">Profit &amp; Loss</div><div class="rc-desc">Net profit/loss statement</div>
+        </div>
+      </div>
+
+      <!-- Report Sheet Output -->
+      <div id="reportOutput" style="display:none">
+        <div class="no-print" style="max-width: 800px; margin: 0 auto 16px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-weight: 700; color: var(--gray-700); margin: 0;">Document Preview</h3>
+          <button class="btn btn-green btn-sm" onclick="window.print()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print Report</button>
+        </div>
+        <div class="report-sheet" id="reportSheetContainer">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const BIZ_META={RENTAL:{name:'Rental',color:'#6B3FA0'},BUSINESS:{name:'Business',color:'#2d6a2e'},AGRI:{name:'Agriculture',color:'#D4A915'},NON_AGRI:{name:'Non-Agriculture',color:'#1A1A1A'}};
+const params=new URLSearchParams(window.location.search);
+const BIZ=params.get('biz')||'RENTAL';
+const meta=BIZ_META[BIZ]||BIZ_META.RENTAL;
+
+let employeeName = "Loading...";
+
+function buildNav(){
+  document.getElementById('empNav').innerHTML=`
+    <a class="nav-item" href="/employee/dashboard?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+    <a class="nav-item" href="/employee/inventory?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+    <a class="nav-item" href="/employee/sales?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+    <a class="nav-item" href="/employee/expenses?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> Expenses / Income</a>
+    <a class="nav-item active" href="/employee/reports?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+    <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>`;
+}
+
+async function genReport(type){
+  const titles={income:'Income Statement',balance:'Balance Summary',cashflow:'Cash Flow Report',sales:'Sales Summary',inventory:'Inventory Report',profitloss:'Profit & Loss Statement'};
+  document.getElementById('reportOutput').style.display='block';
+  const now=new Date();
+  
+  const sheetHeader = `
+    <div class="report-sheet-header">
+      <div class="report-sheet-logo">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        <div>
+          <h4 style="margin:0; font-size:0.9rem; font-weight:800; color:var(--gray-800);">Pampanga State Agricultural University</h4>
+          <span style="font-size:0.72rem; color:var(--gray-500); display:block; margin-top:2px;">Pacung, San Luis, Pampanga</span>
+        </div>
+      </div>
+      <div class="report-sheet-title-group">
+        <h3>Office of Business Affairs</h3>
+        <div class="org-sub">${meta.name} Category</div>
+        <div class="report-type">${titles[type]}</div>
+      </div>
+    </div>
+    
+    <div class="report-sheet-meta">
+      <div><strong>Date Range:</strong> Cumulative Annual Report</div>
+      <div><strong>Generated By:</strong> ${employeeName}</div>
+      <div><strong>Date:</strong> ${now.toLocaleDateString('en-PH')} ${now.toLocaleTimeString('en-PH', {hour:'2-digit', minute:'2-digit'})}</div>
+    </div>
+  `;
+
+  const sheetSignatures = `
+    <div class="report-sheet-signatures">
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Prepared By</div>
+        <div class="sig-title">${employeeName} (Category Employee)</div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-label">Reviewed By</div>
+        <div class="sig-title">OBA Director / Representative</div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('reportSheetContainer').innerHTML=sheetHeader+`<div class="empty-state"><div class="spinner"></div><p style="margin-top:12px">Generating financial ledger sheets...</p></div>` + sheetSignatures;
+  document.getElementById('reportOutput').scrollIntoView({behavior:'smooth'});
+
+  try {
+    let body = '';
+    if (type === 'income' || type === 'profitloss') {
+      const res = await API.get(`/api/reports/${BIZ}/income-statement?period=year`);
+      if (res.success) {
+        const d = res.data;
+        body = `
+          <div style="margin-top:10px;">
+            <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">I. Revenue & Receipts</h4>
+            <div class="ledger-row-sub indent"><span class="lbl">Sales Revenue</span><span class="val">${fmt.currency(d.salesRevenue)}</span></div>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Other Supporting Income</span><span class="val">${fmt.currency(d.otherIncome)}</span></div>
+            <div class="ledger-row-sub total"><span class="lbl">Total Gross Revenue</span><span class="val" style="color:var(--green)">${fmt.currency(d.totalRevenue)}</span></div>
+            
+            <h4 style="margin: 24px 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">II. Operating Expenses</h4>
+            <div class="ledger-row-sub indent"><span class="lbl">Cost of Goods Sold (Supplies)</span><span class="val">${fmt.currency(d.costOfGoods)}</span></div>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">General & Operating Expenses</span><span class="val">${fmt.currency(d.operatingExpenses)}</span></div>
+            <div class="ledger-row-sub total"><span class="lbl">Total Expenditures</span><span class="val" style="color:var(--danger)">${fmt.currency(d.totalExpenses)}</span></div>
+            
+            <div class="ledger-row-sub grand-total" style="margin-top:30px;">
+              <span class="lbl">NET PROFIT / INCOME</span>
+              <span class="val" style="color:${d.netIncome>=0?'var(--green)':'var(--danger)'}">${fmt.currency(d.netIncome)}</span>
+            </div>
+          </div>
+        `;
+      }
+    } else if (type === 'balance') {
+      const res = await API.get(`/api/reports/${BIZ}/balance-summary`);
+      if (res.success) {
+        const d = res.data;
+        body = `
+          <div style="margin-top:10px;">
+            <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">I. Current & Fixed Assets</h4>
+            <div class="ledger-row-sub indent"><span class="lbl">Cash and Cash Equivalents</span><span class="val">${fmt.currency(d.assets.cash)}</span></div>
+            <div class="ledger-row-sub indent"><span class="lbl">Inventory Asset Value</span><span class="val">${fmt.currency(d.assets.inventory)}</span></div>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Receivables</span><span class="val">${fmt.currency(d.assets.receivables)}</span></div>
+            <div class="ledger-row-sub total"><span class="lbl">Total Assets</span><span class="val" style="color:var(--green)">${fmt.currency(d.assets.totalAssets)}</span></div>
+            
+            <h4 style="margin: 24px 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">II. Liabilities</h4>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Outstanding Accounts Payable</span><span class="val" style="color:var(--danger)">${fmt.currency(d.liabilities.payables)}</span></div>
+            <div class="ledger-row-sub total"><span class="lbl">Total Liabilities</span><span class="val" style="color:var(--danger)">${fmt.currency(d.liabilities.totalLiabilities)}</span></div>
+            
+            <div class="ledger-row-sub grand-total" style="margin-top:30px;">
+              <span class="lbl">OWNER'S EQUITY (Net Assets)</span>
+              <span class="val">${fmt.currency(d.equity)}</span>
+            </div>
+          </div>
+        `;
+      }
+    } else if (type === 'cashflow') {
+      const res = await API.get(`/api/reports/${BIZ}/cash-flow?period=year`);
+      if (res.success) {
+        const d = res.data;
+        body = `
+          <div style="margin-top:10px;">
+            <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">I. Cash Flow from Operating Activities</h4>
+            <div class="ledger-row-sub indent"><span class="lbl">Cash Receipts from Sales</span><span class="val" style="color:var(--green)">+ ${fmt.currency(d.operatingActivities.salesReceipts)}</span></div>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Cash Payments for General Expenses</span><span class="val" style="color:var(--danger)">- ${fmt.currency(d.operatingActivities.expensePayments)}</span></div>
+            <div class="ledger-row-sub total"><span class="lbl">Net Cash from Operating Activities</span><span class="val" style="color:var(--green)">${fmt.currency(d.operatingActivities.netOperating)}</span></div>
+            
+            <h4 style="margin: 24px 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">II. Cash Flow from Investing Activities</h4>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Acquisition of Equipment / Fixed Assets</span><span class="val" style="color:var(--danger)">- ${fmt.currency(d.investingActivities.equipmentPurchase)}</span></div>
+            
+            <div class="ledger-row-sub total" style="margin-top:20px;"><span class="lbl">Opening Cash Balance</span><span class="val">${fmt.currency(d.openingBalance)}</span></div>
+            <div class="ledger-row-sub grand-total" style="margin-top:20px;">
+              <span class="lbl">NET CLOSING CASH BALANCE</span>
+              <span class="val" style="color:var(--green)">${fmt.currency(d.closingBalance)}</span>
+            </div>
+          </div>
+        `;
+      }
+    } else if (type === 'sales') {
+      const res = await API.get(`/api/reports/${BIZ}/summary?period=year`);
+      if (res.success) {
+        body = `
+          <div style="margin-top:10px;">
+            <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">Annual Sales Statement</h4>
+            <div class="ledger-row-sub indent"><span class="lbl">Gross Sales Revenue</span><span class="val">${fmt.currency(res.data.revenue)}</span></div>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Registered Operating Expense Outflow</span><span class="val" style="color:var(--danger)">${fmt.currency(res.data.expenses)}</span></div>
+            <div class="ledger-row-sub grand-total" style="margin-top:30px;">
+              <span class="lbl">NET OPERATING PROFIT MARGIN</span>
+              <span class="val">${fmt.currency(res.data.profit)}</span>
+            </div>
+          </div>
+        `;
+      }
+    } else if (type === 'inventory') {
+      const res = await API.get('/api/inventory?biz=' + BIZ);
+      if (res.success) {
+        const items = res.data || [];
+        const totalStockVal = items.reduce((sum, item) => sum + ((parseFloat(item.sellingPrice) || 0) * (parseInt(item.quantity || item.stock) || 0)), 0);
+        const totalItemsCount = items.length;
+        const totalUnitsCount = items.reduce((sum, item) => sum + (parseInt(item.quantity || item.stock) || 0), 0);
+        body = `
+          <div style="margin-top:10px;">
+            <h4 style="margin: 0 0 12px 0; border-bottom: 2px solid var(--gray-800); padding-bottom: 6px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.5px; color: var(--gray-600);">Inventory & Asset Valuation</h4>
+            <div class="ledger-row-sub indent"><span class="lbl">Total Distinct Product Lines</span><span class="val">${totalItemsCount} Products</span></div>
+            <div class="ledger-row-sub indent" style="margin-bottom:4px;"><span class="lbl">Total In-Stock Units Available</span><span class="val">${totalUnitsCount} Units</span></div>
+            <div class="ledger-row-sub grand-total" style="margin-top:30px;">
+              <span class="lbl">TOTAL INVENTORY ASSET VALUATION</span>
+              <span class="val" style="color:var(--green)">${fmt.currency(totalStockVal)}</span>
+            </div>
+            
+            <table class="ledger-table" style="margin-top: 30px;">
+              <thead>
+                <tr>
+                  <th>Product / Description</th>
+                  <th style="text-align: center;">In-Stock Qty</th>
+                  <th style="text-align: right;">Unit Price</th>
+                  <th style="text-align: right;">Total Valuation</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.slice(0, 15).map(item => {
+                  const qty = parseInt(item.quantity || item.stock) || 0;
+                  const price = parseFloat(item.sellingPrice) || 0;
+                  return `
+                    <tr>
+                      <td>${item.name}</td>
+                      <td style="text-align: center;">${qty}</td>
+                      <td style="text-align: right;">${fmt.currency(price)}</td>
+                      <td style="text-align: right; font-weight: 700;">${fmt.currency(qty * price)}</td>
+                    </tr>
+                  `;
+                }).join('')}
+                ${items.length > 15 ? `<tr><td colspan="4" style="text-align:center; color:var(--gray-400); font-style:italic;">Showing top 15 items. Complete list available in primary inventory database.</td></tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+    } else {
+      body = '<div class="empty-state">No report layout defined.</div>';
+    }
+    document.getElementById('reportSheetContainer').innerHTML = sheetHeader + (body || '<div class="empty-state">No data available</div>') + sheetSignatures;
+  } catch(e) {
+    document.getElementById('reportSheetContainer').innerHTML = sheetHeader + '<div class="empty-state">Error generating report</div>' + sheetSignatures;
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  buildNav();
+  document.getElementById('topbarTitle').textContent=meta.name+' - Reports';
+  document.title=meta.name+' Reports - OBA System';
+  getCurrentUser().then(u=>{
+    if(u){
+      employeeName = u.name;
+      document.getElementById('sidebarName').textContent=u.name;
+      document.querySelector('.sidebar-user-role').textContent='Logged in as: '+formatRole(u.role);
+      document.getElementById('sidebarAvatar').textContent=u.name.charAt(0).toUpperCase();
+    }
+  });
+});
+</script>
+</body>
+</html>
+

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Access — OBA System | PSAU</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { background: var(--gray-100); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .req-wrap { width: 100%; max-width: 600px; }
+    .req-header { text-align: center; margin-bottom: 28px; }
+    .req-logo { font-size: 1.2rem; font-weight: 800; color: var(--black); margin-bottom: 4px; }
+    .req-logo span { color: var(--yellow-dark); }
+    .req-header p { color: var(--gray-600); font-size: 0.9rem; }
+    .success-state { display: none; text-align: center; padding: 40px 0; }
+    .success-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .success-state h3 { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="req-wrap">
+    <div class="req-header">
+      <div class="req-logo">OBA <span>System</span></div>
+      <p>Request access to the Office of Business Affairs system</p>
+    </div>
+
+    <div class="card" id="formCard">
+      <div class="card-header">
+        <h3 class="card-title"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Access Request Form</h3>
+        <a href="/login" class="btn btn-ghost btn-sm">← Back to Login</a>
+      </div>
+
+      <div class="alert alert-info">
+        <span><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span> Your request will be reviewed by the OBA System Administrator. You will be notified once access is granted.
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" id="name" class="form-control" placeholder="Juan Dela Cruz">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input type="email" id="email" class="form-control" placeholder="you@psau.edu.ph">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Position / Designation *</label>
+          <input type="text" id="position" class="form-control" placeholder="e.g. Accounting Officer">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role Requested</label>
+          <select id="roleReq" class="form-control">
+            <option value="employee">Employee (Staff)</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Admin (Per Business)</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Business Unit</label>
+          <select id="businessUnit" class="form-control">
+            <option value="">Select Business Unit</option>
+            <option value="all">All Business Units</option>
+            <option value="RENTAL">Rental</option>
+            <option value="BUSINESS">Business</option>
+            <option value="AGRI">Agriculture</option>
+            <option value="NON_AGRI">Non-Agriculture</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Reason for Access *</label>
+        <textarea id="reason" class="form-control" placeholder="Briefly describe why you need access to the OBA System..."></textarea>
+      </div>
+
+      <div class="modal-footer" style="border: none; padding: 0; margin-top: 8px;">
+        <a href="/login" class="btn btn-outline">Cancel</a>
+        <button class="btn btn-primary" onclick="submitRequest()">Submit Request →</button>
+      </div>
+    </div>
+
+    <div class="card success-state" id="successCard">
+      <div class="icon"><svg width="48" height="48" fill="none" stroke="#5A7A5A" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+      <h3>Request Submitted!</h3>
+      <p>Your access request has been sent to the OBA System Administrator.<br>You will be notified via email once your request is reviewed.</p>
+      <a href="/login" class="btn btn-primary mt-16">Back to Login</a>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    async function submitRequest() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const position = document.getElementById('position').value.trim();
+      const businessUnit = document.getElementById('businessUnit').value;
+      const roleReq = document.getElementById('roleReq').value;
+      const reason = document.getElementById('reason').value.trim();
+      if (!name || !email || !reason) { Toast.warning('Please fill in all required fields.'); return; }
+      try {
+        const res = await API.post('/request-access', { name, email, position, businessUnit, roleReq, reason });
+        if (res.success) {
+          document.getElementById('formCard').style.display = 'none';
+          document.getElementById('successCard').style.display = 'block';
+        }
+      } catch (e) { Toast.error('Failed to submit. Please try again.'); }
+    }
+  </script>
+</body>
+</html>

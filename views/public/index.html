@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OBA System — Office of Business Affairs | PSAU</title>
+  <meta name="description"
+    content="Web-based Integrated Sales Monitoring, Inventory, and Financial Reporting System for Office of Business Affairs — PSAU">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body {
+      background: var(--white);
+      font-family: var(--font-main);
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 60px;
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--black);
+      text-decoration: none;
+    }
+
+    .navbar-logo span {
+      color: var(--green);
+    }
+
+    .navbar-logo img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .navbar-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .navbar-links a {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: 0.2s;
+    }
+
+    .navbar-links a:hover,
+    .navbar-links a.active {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(30, 80, 30, 0.9), rgba(15, 40, 15, 0.95)), url('/images/psaubg.jpg') center/cover;
+      padding: 120px 60px;
+      text-align: center;
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin: 0 auto 30px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .section {
+      padding: 80px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 2.2rem;
+      color: var(--black);
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .about-text p {
+      font-size: 1.1rem;
+      color: var(--gray-600);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .mv-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .mv-card {
+      background: var(--gray-50);
+      padding: 40px;
+      border-radius: 12px;
+      border-top: 4px solid var(--green);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mv-card h3 {
+      font-size: 1.5rem;
+      color: var(--green);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mv-card p {
+      font-size: 1.05rem;
+      color: var(--gray-600);
+      line-height: 1.7;
+    }
+
+    .why-oba {
+      background: var(--green-light);
+      padding: 80px 60px;
+    }
+
+    .why-oba-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .reason-card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+
+    .reason-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(45, 106, 46, 0.1);
+      color: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    footer {
+      background: var(--black);
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      padding: 30px 40px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">
+      <img src="/images/psaulogo.png" alt="PSAU Logo">
+      PSAU <span>OBA System</span>
+    </a>
+    <div class="navbar-links">
+      <a href="/" class="active">Home</a>
+      <a href="/features">Features</a>
+    </div>
+    <div>
+      <a href="/login" class="btn btn-green">System Login</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>Smart Inventory, Smarter Decisions</h1>
+    <p>A unified, web-based platform for Multi-Business Monitoring, Inventory Management, and Financial Reporting
+      designed specifically for the Office of Business Affairs at Pampanga State Agricultural University.</p>
+    <a href="/features" class="btn btn-outline"
+      style="color:white; border-color:white; padding: 12px 24px; font-size: 1.1rem; margin-top: 20px;">Explore
+      Features</a>
+  </header>
+
+  <section class="section">
+    <div class="grid-2">
+      <div class="about-text">
+        <h2 style="font-size: 2.2rem; margin-bottom: 24px; color: var(--black);">About the Office of Business Affairs
+          (OBA)</h2>
+        <p>The Office of Business Affairs (OBA) at Pampanga State Agricultural University oversees diverse
+          revenue-generating activities across the campus. From agricultural produce to rental properties, OBA is the
+          backbone of the university's commercial and trading operations.</p>
+        <p>To align with the standards of public higher education institutions, the OBA System was developed to
+          centralize and automate sales monitoring, inventory control, and financial operations into one secure,
+          real-time platform.</p>
+      </div>
+      <div>
+        <img src="/images/psaubg.jpg" alt="PSAU Campus"
+          style="width: 100%; border-radius: 12px; box-shadow: var(--shadow-md);">
+      </div>
+    </div>
+
+    <div class="mv-cards">
+      <div class="mv-card">
+        <h3>
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+          Our Mission
+        </h3>
+        <p>To provide efficient, transparent, and technology-driven management of all revenue-generating projects at
+          Pampanga State Agricultural University, ensuring accurate financial reporting and sustainable business
+          operations that contribute to the university's growth.</p>
+      </div>
+      <div class="mv-card">
+        <h3>
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="4" />
+            <line x1="21.17" y1="8" x2="12" y2="8" />
+            <line x1="3.95" y1="6.06" x2="8.54" y2="14" />
+            <line x1="10.88" y1="21.94" x2="15.46" y2="14" />
+          </svg>
+          Our Vision
+        </h3>
+        <p>To be a premier, self-sustaining business division within the university system, recognized for its automated
+          processes, accountability, and outstanding contribution to the agricultural and commercial sectors of the
+          region.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="why-oba">
+    <h2 class="section-title">Why the OBA System Matters</h2>
+    <div class="why-oba-grid">
+      <div class="reason-card">
+        <div class="reason-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+        </div>
+        <h4 style="font-size:1.2rem; margin-bottom:12px">Financial Transparency</h4>
+        <p style="color:var(--gray-600); line-height:1.6">Automated calculation and COA-compliant reporting ensures
+          every peso is tracked, accounted for, and correctly attributed to the right business unit.</p>
+      </div>
+      <div class="reason-card">
+        <div class="reason-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        </div>
+        <h4 style="font-size:1.2rem; margin-bottom:12px">Real-Time Operations</h4>
+        <p style="color:var(--gray-600); line-height:1.6">From stock deductions to sales logging, all operations reflect
+          instantly across the network, ending the era of manual, delayed record-keeping.</p>
+      </div>
+      <div class="reason-card">
+        <div class="reason-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <h4 style="font-size:1.2rem; margin-bottom:12px">Secure Accountability</h4>
+        <p style="color:var(--gray-600); line-height:1.6">Role-based access controls and a strict audit trail mean the
+          administration always knows who recorded what, and when.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 OBA System · Pampanga State Agricultural University</p>
+  </footer>
+</body>
+
+</html>

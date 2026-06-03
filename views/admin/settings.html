@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .sidebar-logo-area { display: flex; flex-direction: column; align-items: center; padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-logo-area .org-name { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.7); text-align: center; line-height: 1.4; }
+    .sidebar-nav .nav-item.active { background: linear-gradient(90deg, #3a8c3b, #2d6a2e); color: var(--white); border-left-color: var(--white); }
+    .topbar-green { background: linear-gradient(90deg, #2d6a2e, #3a8c3b); color: var(--white); }
+    .topbar-green .topbar-title { color: var(--white); }
+    .profile-btn { background: rgba(255,255,255,0.15); border: none; color: var(--white); padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: var(--font-main); }
+    .suspicious-row { background: #FFF5F5 !important; }
+    .suspicious-row td:first-child { border-left: 3px solid var(--danger); }
+    .activity-card { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--white); }
+    .activity-card:hover { box-shadow: var(--shadow-sm); }
+    .alert-log-item { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); display: flex; gap: 12px; align-items: flex-start; }
+    .alert-log-item:last-child { border-bottom: none; }
+    .alert-icon-sm { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem; }
+    .backup-card { max-width: 600px; margin: 0 auto; }
+    .backup-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .backup-stat { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 20px; text-align: center; }
+    .backup-stat .val { font-size: 1.5rem; font-weight: 800; }
+    .backup-stat .lbl { font-size: 0.78rem; color: var(--gray-600); margin-top: 4px; }
+    .alert-restore { background: var(--danger-light); border: 1px solid var(--danger); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px; font-size: 0.85rem; color: var(--danger); }
+    .settings-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid var(--gray-200); }
+    .settings-tab { padding: 12px 24px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--gray-500); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .settings-tab:hover { color: var(--gray-700); }
+    .settings-tab.active { color: var(--green); border-bottom-color: var(--green); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/admin/dashboard"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+      <a class="nav-item" href="/admin/business"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg></span> Business</a>
+      <a class="nav-item" href="/admin/inventory"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+      <a class="nav-item" href="/admin/sales"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+      <a class="nav-item" href="/admin/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+      <a class="nav-item" href="/admin/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
+      <a class="nav-item" href="/admin/users"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Users</a>
+      <a class="nav-item active" href="/admin/settings"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Settings</a>
+      <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div></div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title">System Settings</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" id="notifCount" style="display:none">0</span>
+          <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <button class="profile-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Profile</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="settings-tabs">
+        <div class="settings-tab active" onclick="switchSettingsTab('audit',this)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Audit Trail
+        </div>
+        <div class="settings-tab" onclick="switchSettingsTab('backup',this)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          Backup & Recovery
+        </div>
+        <div class="settings-tab" onclick="switchSettingsTab('general',this)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          General
+        </div>
+      </div>
+
+      <!-- Audit Trail Tab -->
+      <div id="panel-audit">
+        <div class="report-tabs">
+          <div class="report-tab active" onclick="switchAudit('logs',this)">Transaction Logs</div>
+          <div class="report-tab" onclick="switchAudit('edits',this)">Edit History</div>
+          <div class="report-tab" onclick="switchAudit('suspicious',this)">Suspicious Changes</div>
+          <div class="report-tab" onclick="switchAudit('activity',this)">User Activity</div>
+          <div class="report-tab" onclick="switchAudit('alerts',this)">Alert Logs</div>
+        </div>
+        <div class="filters-bar" style="margin-bottom:20px">
+          <div class="filter-item"><div class="filter-label">Filter by User</div><input type="text" id="fUser" class="filter-control" placeholder="User name..." oninput="renderLogs()"></div>
+          <div class="filter-item"><div class="filter-label">Date From</div><input type="date" id="fFrom" class="filter-control" onchange="renderLogs()"></div>
+          <div class="filter-item"><div class="filter-label">Date To</div><input type="date" id="fTo" class="filter-control" onchange="renderLogs()"></div>
+          <div class="filter-item"><div class="filter-label">Action</div>
+            <select id="fAction" class="filter-control" onchange="renderLogs()"><option value="">All Actions</option><option value="LOGIN">Login</option><option value="CREATE">Create</option><option value="EDIT">Edit</option><option value="DELETE">Delete</option></select>
+          </div>
+          <button class="btn-export" style="margin-top:18px" onclick="exportAudit()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Export</button>
+        </div>
+        <div id="panel-logs"><div class="card"><div id="logsTable"><div class="spinner"></div></div></div></div>
+        <div id="panel-edits" style="display:none"><div class="card"><div class="card-header"><span class="card-title">Edit History Tracking</span></div><div id="editsTable"></div></div></div>
+        <div id="panel-suspicious" style="display:none"><div class="card"><div class="card-header"><span class="card-title">Suspicious Changes Detection</span></div><p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:16px">Flagged changes include: bulk edits, deletions, and unauthorized modifications.</p><div id="suspiciousTable"></div></div></div>
+        <div id="panel-activity" style="display:none"><div class="card"><div class="card-header"><span class="card-title">User Activity Monitoring</span></div><div id="activityList"></div></div></div>
+        <div id="panel-alerts" style="display:none"><div class="card"><div class="card-header"><span class="card-title">Alert Logs</span></div><div id="alertLogList"></div></div></div>
+      </div>
+
+      <!-- Backup Tab -->
+      <div id="panel-backup" style="display:none">
+        <div class="backup-card">
+          <div style="margin-bottom:24px">
+            <h2 style="margin-bottom:8px">System Backup & Recovery</h2>
+            <p style="color:var(--gray-600)">Export all system data or restore from a previous backup.</p>
+          </div>
+          <div class="backup-info" id="backupInfo">
+            <div class="backup-stat"><div class="val" style="color:var(--info)" id="statRecords">—</div><div class="lbl">Total Records</div></div>
+            <div class="backup-stat"><div class="val" style="color:var(--green)" id="statLastBackup">—</div><div class="lbl">Last Backup</div></div>
+            <div class="backup-stat"><div class="val" style="color:var(--yellow-dark)" id="statStatus">—</div><div class="lbl">Status</div></div>
+          </div>
+          <div class="card" style="padding:24px;margin-bottom:20px">
+            <h3 style="margin-bottom:12px">Export Backup</h3>
+            <p style="font-size:0.85rem;color:var(--gray-600);margin-bottom:16px">Download a complete JSON backup of all sales, inventory, expenses, businesses, users, and audit logs.</p>
+            <button class="btn btn-primary" onclick="downloadBackup()">Download Backup</button>
+          </div>
+          <div class="card" style="padding:24px">
+            <h3 style="margin-bottom:12px">Restore from Backup</h3>
+            <div class="alert-restore"><strong>Warning:</strong> Restoring from backup will OVERWRITE all current data with the backup data. This action cannot be undone. Only use this if you need to recover from data loss.</div>
+            <div style="margin-bottom:12px"><label class="form-label">Select backup JSON file</label><input type="file" id="backupFile" class="form-control" accept=".json"></div>
+            <button class="btn btn-danger" onclick="restoreBackup()">Restore from File</button>
+          </div>
+          <div id="restoreResult" style="display:none;margin-top:16px"></div>
+        </div>
+      </div>
+
+      <!-- General Settings Tab -->
+      <div id="panel-general" style="display:none">
+        <div class="card" style="max-width:600px;margin:0 auto;padding:32px">
+          <h3 style="margin-bottom:20px">General Settings</h3>
+          <div class="form-group" style="margin-bottom:20px">
+            <label class="form-label">System Name</label>
+            <input type="text" class="form-control" id="sysName" value="OBA System - PSAU" placeholder="System name">
+          </div>
+          <div class="form-group" style="margin-bottom:20px">
+            <label class="form-label">Items Per Page</label>
+            <select class="form-control" id="sysPerPage">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="saveGeneralSettings()">Save Settings</button>
+          <div id="generalResult" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+let auditLogs = [];
+const mockLogs = [
+  { action: 'LOGIN', module: 'Auth', details: 'Admin logged in successfully', userName: 'OBA Administrator', timestamp: new Date(Date.now()-120000).toISOString(), isSuspicious: false },
+  { action: 'CREATE', module: 'Sales', details: 'New sale recorded — ₱1,500', userName: 'Juan Dela Cruz', timestamp: new Date(Date.now()-300000).toISOString(), isSuspicious: false, businessId: 'BUSINESS-1' },
+  { action: 'EDIT', module: 'Inventory', details: 'Updated stock: PE UNIFORM 100 → 5', userName: 'Juan Dela Cruz', timestamp: new Date(Date.now()-600000).toISOString(), isSuspicious: true, previousValue: '100', newValue: '5' },
+  { action: 'DELETE', module: 'Sales', details: 'Deleted sale record #SL-042', userName: 'OBA Administrator', timestamp: new Date(Date.now()-900000).toISOString(), isSuspicious: true },
+  { action: 'CREATE', module: 'Expense', details: 'Recorded expense: Electricity ₱8,500', userName: 'OBA Administrator', timestamp: new Date(Date.now()-1800000).toISOString(), isSuspicious: false, businessId: 'RENTAL-1' },
+  { action: 'LOGIN', module: 'Auth', details: 'Employee login from new device', userName: 'Maria Santos', timestamp: new Date(Date.now()-3600000).toISOString(), isSuspicious: false },
+  { action: 'EDIT', module: 'Users', details: 'Changed role: viewer → employee', userName: 'OBA Administrator', timestamp: new Date(Date.now()-7200000).toISOString(), isSuspicious: false, previousValue: 'viewer', newValue: 'employee' },
+  { action: 'BULK_EDIT', module: 'Inventory', details: 'Bulk restock: 15 items updated', userName: 'Juan Dela Cruz', timestamp: new Date(Date.now()-14400000).toISOString(), isSuspicious: true },
+];
+
+function switchSettingsTab(name, el) {
+  document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['audit','backup','general'].forEach(n => document.getElementById('panel-' + n).style.display = 'none');
+  document.getElementById('panel-' + name).style.display = 'block';
+  if (name === 'backup') loadBackupInfo();
+}
+
+function switchAudit(name, el) {
+  ['logs','edits','suspicious','activity','alerts'].forEach(n => document.getElementById('panel-' + n).style.display = 'none');
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).style.display = 'block';
+  el.classList.add('active');
+  if (name === 'activity') loadActivity();
+  if (name === 'alerts') loadAlerts();
+  if (name === 'edits') renderEdits();
+  if (name === 'suspicious') renderSuspicious();
+}
+
+async function loadData() {
+  try {
+    const res = await API.get('/api/admin/audit-logs');
+    auditLogs = (res.success && res.data.length) ? res.data : mockLogs;
+  } catch { auditLogs = mockLogs; }
+  renderLogs();
+}
+
+function parseTS(ts) {
+  if (!ts) return null;
+  if (ts.seconds) return new Date(ts.seconds * 1000);
+  return new Date(ts);
+}
+
+function filterLogs(logs) {
+  let list = [...logs];
+  const user = document.getElementById('fUser').value.toLowerCase();
+  const from = document.getElementById('fFrom').value;
+  const to = document.getElementById('fTo').value;
+  const action = document.getElementById('fAction').value;
+  if (user) list = list.filter(l => (l.userName||'').toLowerCase().includes(user));
+  if (from) list = list.filter(l => { const d = parseTS(l.timestamp); return d && d >= new Date(from); });
+  if (to) list = list.filter(l => { const d = parseTS(l.timestamp); return d && d <= new Date(to + 'T23:59:59'); });
+  if (action) list = list.filter(l => l.action === action);
+  return list;
+}
+
+function actionBadge(a) {
+  const m = { LOGIN:'badge-green', CREATE:'badge-green', EDIT:'badge-yellow', DELETE:'badge-danger', BULK_EDIT:'badge-danger' };
+  return `<span class="badge ${m[a]||'badge-gray'}">${a}</span>`;
+}
+
+function dateGroupLabel(d) {
+  const now = new Date(); const today = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+  const weekStart = new Date(today); weekStart.setDate(weekStart.getDate()-weekStart.getDay());
+  if (d >= today) return 'Today'; if (d >= yesterday) return 'Yesterday';
+  if (d >= weekStart) return 'This Week'; return 'Earlier';
+}
+
+const ACTION_ICONS = {
+  LOGIN: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
+  CREATE: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  EDIT: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  DELETE: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  BULK_EDIT: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+};
+const ACTION_COLORS = { LOGIN:'var(--info)', CREATE:'var(--green)', EDIT:'var(--yellow-dark)', DELETE:'var(--danger)', BULK_EDIT:'var(--danger)' };
+
+function actionIcon(a) { return ACTION_ICONS[a]||ACTION_ICONS.EDIT; }
+function actionColor(a) { return ACTION_COLORS[a]||'var(--gray-600)'; }
+
+function renderLogs() {
+  const list = filterLogs(auditLogs);
+  if (!list.length) { document.getElementById('logsTable').innerHTML = '<div class="empty-state"><h3>No logs found</h3></div>'; return; }
+  const groups = { Today: [], Yesterday: [], 'This Week': [], Earlier: [] };
+  list.forEach(l => { const d = parseTS(l.timestamp); if (d) { const label = dateGroupLabel(d); if (groups[label]) groups[label].push(l); else groups.Earlier.push(l); } else { groups.Earlier.push(l); } });
+  let html = '';
+  Object.entries(groups).forEach(([label, items]) => {
+    if (!items.length) return;
+    html += `<div style="margin-bottom:20px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:0 4px"><span style="font-size:0.82rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.5px">${label}</span><span style="font-size:0.72rem;color:var(--gray-400);background:var(--gray-100);padding:1px 8px;border-radius:10px">${items.length}</span><div style="flex:1;height:1px;background:var(--gray-200)"></div></div>`;
+    items.forEach(l => {
+      const ts = parseTS(l.timestamp);
+      html += `<div class="activity-card" style="${l.isSuspicious?'background:#FFF5F5;border-left:3px solid var(--danger)':''}">
+        <div style="display:flex;align-items:center;gap:12px;flex:1">
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${actionColor(l.action)}18;color:${actionColor(l.action)};flex-shrink:0">${actionIcon(l.action)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.85rem;font-weight:600;color:var(--gray-800)">${l.details||'—'}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:3px;font-size:0.75rem;color:var(--gray-500)"><span style="font-weight:600">${l.userName||'System'}</span><span>·</span><span>${ts ? fmt.datetime(ts) : ''}</span></div>
+          </div>
+        </div>
+        <div style="flex-shrink:0">${actionBadge(l.action)}</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('logsTable').innerHTML = html;
+}
+
+function renderEdits() {
+  const edits = auditLogs.filter(l => l.previousValue || l.newValue);
+  document.getElementById('editsTable').innerHTML = !edits.length ? '<div class="empty-state"><h3>No edit history</h3></div>' :
+    `<table><thead><tr><th>Details</th><th>Previous</th><th>New</th><th>By</th><th>When</th></tr></thead><tbody>
+    ${edits.map(l => `<tr><td>${l.details||''}</td><td style="color:var(--danger);text-decoration:line-through">${l.previousValue||'—'}</td><td style="color:var(--green);font-weight:700">${l.newValue||'—'}</td><td>${l.userName}</td><td style="font-size:0.82rem">${fmt.datetime(l.timestamp)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function renderSuspicious() {
+  const sus = auditLogs.filter(l => l.isSuspicious);
+  document.getElementById('suspiciousTable').innerHTML = !sus.length ? '<div class="empty-state"><h3>No suspicious changes detected</h3></div>' :
+    `<table><thead><tr><th>Action</th><th>Details</th><th>User</th><th>Timestamp</th></tr></thead><tbody>
+    ${sus.map(l => `<tr class="suspicious-row"><td>${actionBadge(l.action)}</td><td>${l.details||''}</td><td class="fw-bold">${l.userName}</td><td style="font-size:0.82rem">${fmt.datetime(l.timestamp)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+async function loadActivity() {
+  try {
+    const res = await API.get('/api/admin/user-activity');
+    const users = res.success ? res.data : [];
+    document.getElementById('activityList').innerHTML = users.map(u => `
+      <div class="activity-card">
+        <div class="flex-c gap-12">
+          <div class="sidebar-avatar" style="width:36px;height:36px;font-size:0.8rem;background:${u.role==='admin'?'var(--danger)':'var(--green)'}">${u.name.charAt(0)}</div>
+          <div><div class="fw-bold" style="font-size:0.9rem">${u.name}</div><div style="font-size:0.78rem;color:var(--gray-400)">${u.email}</div></div>
+        </div>
+        <div class="flex-c gap-16">
+          ${roleBadge(u.role)} ${statusBadge(u.status)}
+          <div style="text-align:right"><div style="font-size:0.78rem;color:var(--gray-400)">Last login</div><div style="font-size:0.82rem;font-weight:600">${u.lastLogin||'Never'}</div></div>
+          <div style="text-align:right"><div style="font-size:0.78rem;color:var(--gray-400)">Actions</div><div style="font-size:0.82rem;font-weight:700">${u.actions||0}</div></div>
+        </div>
+      </div>`).join('');
+  } catch { document.getElementById('activityList').innerHTML = '<div class="empty-state"><h3>Error loading activity</h3></div>'; }
+}
+
+async function loadAlerts() {
+  try {
+    const res = await API.get('/api/admin/notifications');
+    const alerts = res.success ? res.data : [];
+    document.getElementById('alertLogList').innerHTML = alerts.map(a => `
+      <div class="alert-log-item">
+        <div class="alert-icon-sm" style="background:${a.priority==='critical'?'var(--danger-light)':a.priority==='warning'?'var(--yellow-light)':'var(--info-light)'}; color:${a.priority==='critical'?'var(--danger)':a.priority==='warning'?'var(--yellow-dark)':'var(--info)'}">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+        </div>
+        <div style="flex:1"><div style="font-weight:600;font-size:0.88rem">${a.title}</div><div style="font-size:0.82rem;color:var(--gray-600)">${a.message}</div><div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">${timeAgo(a.createdAt)}</div></div>
+        <span class="badge ${a.priority==='critical'?'badge-danger':a.priority==='warning'?'badge-yellow':'badge-green'}">${a.priority}</span>
+      </div>`).join('');
+  } catch { document.getElementById('alertLogList').innerHTML = '<div class="empty-state"><h3>Error loading alerts</h3></div>'; }
+}
+
+function exportAudit() {
+  const list = filterLogs(auditLogs);
+  exportToCSV(list.map(l => ({ Action: l.action, Module: l.module, Details: l.details, User: l.userName, Timestamp: l.timestamp, Suspicious: l.isSuspicious })), 'OBA_Audit_Logs');
+}
+
+async function loadBackupInfo() {
+  try {
+    const res = await API.get('/api/admin/backup/info');
+    if (res.success) {
+      document.getElementById('statRecords').textContent = res.data.totalRecords || 0;
+      document.getElementById('statLastBackup').textContent = res.data.lastBackup || 'Never';
+      document.getElementById('statStatus').textContent = 'Online';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function downloadBackup() {
+  try {
+    Toast.info('Generating backup...');
+    const res = await fetch('/api/admin/backup', { credentials: 'same-origin' });
+    const json = await res.json();
+    if (json.success) {
+      const blob = new Blob([JSON.stringify(json.backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'oba-backup-' + new Date().toISOString().split('T')[0] + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      Toast.success('Backup downloaded successfully');
+    } else {
+      Toast.error(json.message || 'Backup failed');
+    }
+  } catch(e) {
+    Toast.error('Error generating backup');
+    console.error(e);
+  }
+}
+
+async function restoreBackup() {
+  const fileInput = document.getElementById('backupFile');
+  if (!fileInput.files.length) { Toast.warning('Please select a backup file'); return; }
+  confirm('Are you sure you want to restore from backup? This will OVERWRITE all current data!', async () => {
+    try {
+      const file = fileInput.files[0];
+      const text = await file.text();
+      const backupData = JSON.parse(text);
+      const res = await fetch('/api/admin/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ backup: backupData }),
+        credentials: 'same-origin'
+      });
+      const json = await res.json();
+      const resultEl = document.getElementById('restoreResult');
+      resultEl.style.display = 'block';
+      if (json.success) {
+        resultEl.innerHTML = '<div class="alert alert-success">' + json.message + '</div>';
+        loadBackupInfo();
+      } else {
+        resultEl.innerHTML = '<div class="alert alert-danger">' + (json.message || 'Restore failed') + '</div>';
+      }
+    } catch(e) {
+      Toast.error('Invalid backup file or server error');
+      console.error(e);
+    }
+  });
+}
+
+function saveGeneralSettings() {
+  const name = document.getElementById('sysName').value;
+  const perPage = document.getElementById('sysPerPage').value;
+  localStorage.setItem('oba_system_name', name);
+  localStorage.setItem('oba_per_page', perPage);
+  document.getElementById('generalResult').innerHTML = '<div class="alert alert-success">Settings saved locally.</div>';
+  setTimeout(() => document.getElementById('generalResult').innerHTML = '', 3000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  loadBackupInfo();
+  getCurrentUser().then(u => {
+    if(u){
+      document.getElementById('sidebarName').textContent = u.name;
+      document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role);
+      document.querySelector('.sidebar-avatar').textContent = u.name.charAt(0);
+    }
+  });
+});
+</script>
+</body>
+</html>

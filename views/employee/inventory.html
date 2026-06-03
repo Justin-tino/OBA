@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .inv-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .inv-toolbar .search-box { flex: 1; max-width: 320px; }
+    .stock-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .stock-badge.in-stock { background: var(--green-light); color: var(--green); }
+    .stock-badge.low-stock { background: var(--yellow-light); color: var(--yellow-dark); }
+    .stock-badge.out { background: var(--danger-light); color: var(--danger); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav" id="empNav"></nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">E</div>
+        <div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title" id="topbarTitle">Inventory</span>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+        <div class="kpi-card yellow"><div class="kpi-label">Total Products</div><div class="kpi-value" id="kpiTotal">0</div></div>
+        <div class="kpi-card green"><div class="kpi-label">In Stock</div><div class="kpi-value" id="kpiInStock" style="color:var(--green)">0</div></div>
+        <div class="kpi-card danger"><div class="kpi-label">Low Stock</div><div class="kpi-value" id="kpiLow" style="color:var(--danger)">0</div></div>
+        <div class="kpi-card black"><div class="kpi-label">Out of Stock</div><div class="kpi-value" id="kpiOut">0</div></div>
+      </div>
+
+      <div class="card">
+        <div class="inv-toolbar">
+          <div class="search-box">
+            <input id="fSearch" class="form-control" placeholder="Search products..." oninput="renderTable()">
+          </div>
+          <button class="btn btn-primary" onclick="openAdd()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Product</button>
+        </div>
+        <div id="invTable">
+          <div class="empty-state"><h3>No products yet</h3><p>Click "Add Product" to start tracking your inventory</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header"><h3 id="modalTitle">Add Product</h3><button class="modal-close" onclick="closeModal('productModal')">&times;</button></div>
+    <input type="hidden" id="p_id">
+    <div class="form-group"><label class="form-label">Product Name *</label><input id="p_name" class="form-control" placeholder="Product name"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Category *</label><input id="p_category" class="form-control" placeholder="e.g. Supplies"></div>
+      <div class="form-group"><label class="form-label">Unit</label><input id="p_unit" class="form-control" placeholder="e.g. pcs, kg, box"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantity *</label><input id="p_qty" type="number" class="form-control" placeholder="0" min="0"></div>
+      <div class="form-group"><label class="form-label">Reorder Level</label><input id="p_reorder" type="number" class="form-control" placeholder="10" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Unit Cost (&#8369;)</label><input id="p_cost" type="number" class="form-control" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Selling Price * (&#8369;)</label><input id="p_price" type="number" class="form-control" placeholder="0.00" min="0" step="0.01"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Supplier</label><input id="p_supplier" class="form-control" placeholder="Supplier name"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const BIZ_META = {
+  RENTAL:   { name: 'Rental', color: '#6B3FA0' },
+  BUSINESS: { name: 'Business', color: '#2d6a2e' },
+  AGRI:     { name: 'Agriculture', color: '#D4A915' },
+  NON_AGRI: { name: 'Non-Agriculture', color: '#1A1A1A' },
+};
+const params = new URLSearchParams(window.location.search);
+const BIZ = params.get('biz') || 'RENTAL';
+const meta = BIZ_META[BIZ] || BIZ_META.RENTAL;
+let products = [];
+
+function buildNav() {
+  document.getElementById('empNav').innerHTML = `
+    <a class="nav-item" href="/employee/dashboard?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+    <a class="nav-item active" href="/employee/inventory?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+    <a class="nav-item" href="/employee/sales?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+    <a class="nav-item" href="/employee/expenses?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> Expenses / Income</a>
+    <a class="nav-item" href="/employee/reports?biz=${BIZ}"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+    <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+  `;
+}
+
+async function loadData() {
+  try {
+    const res = await API.get('/api/inventory?biz=' + BIZ);
+    if (res.success) { products = res.data || []; renderTable(); updateKPIs(); }
+  } catch(e) { console.error(e); }
+}
+
+function updateKPIs() {
+  const inStock = products.filter(p => (p.quantity || 0) > (p.reorderLevel || 10)).length;
+  const low = products.filter(p => (p.quantity || 0) > 0 && (p.quantity || 0) <= (p.reorderLevel || 10)).length;
+  const out = products.filter(p => (p.quantity || 0) === 0).length;
+  document.getElementById('kpiTotal').textContent = products.length;
+  document.getElementById('kpiInStock').textContent = inStock;
+  document.getElementById('kpiLow').textContent = low;
+  document.getElementById('kpiOut').textContent = out;
+}
+
+function renderTable() {
+  const search = document.getElementById('fSearch').value.toLowerCase();
+  let list = products;
+  if (search) list = list.filter(p => (p.name||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search));
+  const el = document.getElementById('invTable');
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><h3>No products found</h3><p>Click "Add Product" to start tracking inventory</p></div>'; return; }
+  el.innerHTML = `<table><thead><tr><th style="width: 70px;">QR Code</th><th>Product</th><th>Category</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+    ${list.map(p => {
+      const qty = p.quantity || 0;
+      const reorder = p.reorderLevel || 10;
+      let status, cls;
+      if (qty === 0) { status = 'Out of Stock'; cls = 'out'; }
+      else if (qty <= reorder) { status = 'Low Stock'; cls = 'low-stock'; }
+      else { status = 'In Stock'; cls = 'in-stock'; }
+      const qrUrl = p.qrCode || `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${p.id}`;
+      return `<tr>
+        <td style="text-align: center; vertical-align: middle;">
+          <img src="${qrUrl}" alt="QR" style="width:36px; height:36px; cursor:pointer; border-radius:4px; border:1px solid var(--gray-200); background:#fff; padding:2px; display:block; margin:0 auto;" onclick="showQRCode('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${(p.category||'').replace(/'/g, "\\'")}')" title="Click to view/print QR Code">
+        </td>
+        <td class="fw-bold">${p.name}</td>
+        <td>${p.category || '—'}</td>
+        <td>${qty}</td>
+        <td>${p.unit || 'pcs'}</td>
+        <td>&#8369;${parseFloat(p.unitCost || 0).toLocaleString('en',{minimumFractionDigits:2})}</td>
+        <td>&#8369;${parseFloat(p.sellingPrice || 0).toLocaleString('en',{minimumFractionDigits:2})}</td>
+        <td><span class="stock-badge ${cls}">${status}</span></td>
+        <td class="table-actions">
+          <button class="btn btn-outline btn-sm" title="QR Code" onclick="showQRCode('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${(p.category||'').replace(/'/g, "\\'")}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm14 0h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zm-4 0h2v2h-2zm0-4h2v2h-2zm2 2h2v2h-2z"/></svg></button>
+          <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger)" onclick="deleteProduct('${p.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        </td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+function openAdd() {
+  document.getElementById('modalTitle').textContent = 'Add Product';
+  document.getElementById('p_id').value = '';
+  document.getElementById('p_name').value = '';
+  document.getElementById('p_category').value = '';
+  document.getElementById('p_unit').value = '';
+  document.getElementById('p_qty').value = '';
+  document.getElementById('p_reorder').value = '10';
+  document.getElementById('p_cost').value = '';
+  document.getElementById('p_price').value = '';
+  document.getElementById('p_supplier').value = '';
+  openModal('productModal');
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('modalTitle').textContent = 'Edit Product';
+  document.getElementById('p_id').value = p.id;
+  document.getElementById('p_name').value = p.name || '';
+  document.getElementById('p_category').value = p.category || '';
+  document.getElementById('p_unit').value = p.unit || '';
+  document.getElementById('p_qty').value = p.quantity || 0;
+  document.getElementById('p_reorder').value = p.reorderLevel || 10;
+  document.getElementById('p_cost').value = p.unitCost || '';
+  document.getElementById('p_price').value = p.sellingPrice || '';
+  document.getElementById('p_supplier').value = p.supplier || '';
+  openModal('productModal');
+}
+
+async function saveProduct() {
+  const id = document.getElementById('p_id').value;
+  const data = {
+    name: document.getElementById('p_name').value,
+    category: document.getElementById('p_category').value,
+    unit: document.getElementById('p_unit').value,
+    quantity: parseInt(document.getElementById('p_qty').value) || 0,
+    reorderLevel: parseInt(document.getElementById('p_reorder').value) || 10,
+    unitCost: parseFloat(document.getElementById('p_cost').value) || 0,
+    sellingPrice: parseFloat(document.getElementById('p_price').value) || 0,
+    supplier: document.getElementById('p_supplier').value,
+    businessCategory: BIZ,
+  };
+  if (!data.name) { Toast.warning('Product name is required'); return; }
+  if (!data.category) { Toast.warning('Category is required'); return; }
+  if (document.getElementById('p_qty').value.trim() === '' || isNaN(data.quantity) || data.quantity < 0) { Toast.warning('Valid Quantity is required'); return; }
+  if (document.getElementById('p_price').value.trim() === '' || isNaN(data.sellingPrice) || data.sellingPrice <= 0) { Toast.warning('Valid Selling Price is required'); return; }
+  try {
+    const res = id
+      ? await API.put('/api/inventory/' + id, data)
+      : await API.post('/api/inventory', data);
+    if (res.success) {
+      Toast.success(id ? 'Product updated' : 'Product added');
+      closeModal('productModal');
+      loadData();
+      if (!id && res.data && res.data.id) {
+        setTimeout(() => {
+          showQRCode(res.data.id, res.data.name, res.data.category);
+        }, 600);
+      }
+    }
+    else { Toast.error(res.message || 'Unknown server error'); }
+  } catch(e) { Toast.error('Save failed: ' + e.message); }
+}
+
+async function deleteProduct(id) {
+  if (!window.confirm('Delete this product?')) return;
+  try {
+    const res = await API.del('/api/inventory/' + id);
+    if (res.success) { Toast.success('Product deleted'); loadData(); }
+    else { Toast.error(res.message); }
+  } catch(e) { Toast.error('Error deleting'); }
+}
+
+function showQRCode(id, name, cat) {
+  document.getElementById('qrProductName').textContent = name;
+  document.getElementById('qrProductCat').textContent = cat || 'General';
+  document.getElementById('qrProductId').textContent = `ID: ${id}`;
+  
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${id}`;
+  document.getElementById('qrImageContainer').innerHTML = `<img src="${qrUrl}" alt="Product QR Code" style="display:block; width:180px; height:180px;" />`;
+  
+  openModal('qrModal');
+}
+
+function printQR() {
+  const name = document.getElementById('qrProductName').textContent;
+  const cat = document.getElementById('qrProductCat').textContent;
+  const id = document.getElementById('qrProductId').textContent.replace('ID: ', '');
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${id}`;
+  
+  const w = window.open('', '_blank', 'width=350,height=450');
+  w.document.write(`<html><head><title>Print QR Code</title><style>
+    body { font-family: 'Inter', sans-serif; text-align: center; padding: 30px; }
+    .container { border: 2px solid #000; padding: 20px; border-radius: 15px; display: inline-block; }
+    img { margin-bottom: 15px; }
+    h2 { margin: 0 0 5px 0; font-size: 20px; }
+    p { margin: 0; font-size: 14px; color: #555; }
+    code { font-size: 11px; color: #999; display: block; margin-top: 10px; }
+  </style></head><body>
+    <div class="container">
+      <img src="${qrUrl}" width="200" height="200" />
+      <h2>${name}</h2>
+      <p>Category: ${cat}</p>
+      <code>${id}</code>
+    </div>
+    <script>window.onload = function() { window.print(); window.close(); }<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildNav();
+  document.getElementById('topbarTitle').textContent = meta.name + ' - Inventory';
+  document.title = meta.name + ' Inventory - OBA System';
+  loadData();
+  getCurrentUser().then(u => { if(u){ document.getElementById('sidebarName').textContent = u.name; document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role); document.getElementById('sidebarAvatar').textContent = u.name.charAt(0).toUpperCase(); }});
+});
+</script>
+
+<!-- QR Code Modal -->
+<div class="modal-overlay" id="qrModal">
+  <div class="modal" style="max-width:340px; text-align:center;">
+    <div class="modal-header"><h3>Product QR Code</h3><button class="modal-close" onclick="closeModal('qrModal')">&times;</button></div>
+    <div id="qrContent" style="padding: 20px 0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+      <div id="qrImageContainer" style="background:#fff; padding:12px; border-radius:12px; border:1px solid var(--gray-200); box-shadow:var(--shadow-sm); margin-bottom:14px;"></div>
+      <h4 id="qrProductName" style="margin: 0 0 4px 0; font-weight:700;"></h4>
+      <span class="badge badge-gray" id="qrProductCat" style="margin-bottom:8px;"></span>
+      <code id="qrProductId" style="font-size:0.75rem; color:var(--gray-400); word-break:break-all;"></code>
+    </div>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+      <button class="btn btn-outline" onclick="closeModal('qrModal')">Close</button>
+      <button class="btn btn-primary" onclick="printQR()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

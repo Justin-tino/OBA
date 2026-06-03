@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — OBA System</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .biz-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .biz-header .biz-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .biz-header .biz-title { font-size: 1.4rem; font-weight: 800; }
+    .biz-header .biz-subtitle { font-size: 0.85rem; color: var(--gray-600); }
+    .kpi-card .kpi-icon-box { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; position: absolute; top: 18px; right: 18px; }
+    .kpi-card.yellow .kpi-icon-box { background: var(--yellow-light); color: var(--yellow-dark); }
+    .kpi-card.green .kpi-icon-box { background: var(--green-light); color: var(--green); }
+    .kpi-card.danger .kpi-icon-box { background: var(--danger-light); color: var(--danger); }
+    .kpi-card.black .kpi-icon-box { background: var(--gray-100); color: var(--black); }
+    .chart-section { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .quick-action-card { background: var(--white); border-radius: var(--radius); padding: 18px; border: 1px solid var(--gray-200); cursor: pointer; transition: var(--transition); text-align: center; text-decoration: none; color: var(--black); }
+    .quick-action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--yellow); }
+    .quick-action-card svg { margin-bottom: 8px; }
+    .quick-action-card .qa-label { font-size: 0.82rem; font-weight: 600; }
+    @media (max-width: 1024px) { .chart-section { grid-template-columns: 1fr; } .quick-actions { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo-area">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.9);margin-bottom:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <div class="org-name">Office of Business Affairs</div>
+    </div>
+    <nav class="sidebar-nav" id="mgrNav"></nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">M</div>
+        <div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar topbar-green">
+      <div class="flex-c gap-12">
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <span class="topbar-title" id="topbarTitle">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-count" id="notifCount" style="display:none">0</span>
+          <div class="notif-dropdown" id="notifDropdown"></div>
+        </div>
+        <button class="profile-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg> Profile</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="biz-header">
+        <div class="biz-icon" id="bizIcon" style="background:#EDE7F6"><svg width="24" height="24" fill="none" stroke="#6B3FA0" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg></div>
+        <div>
+          <div class="biz-title" id="bizTitle">Loading...</div>
+          <div class="biz-subtitle" id="bizSubtitle">Manager Dashboard</div>
+        </div>
+      </div>
+
+      <div class="quick-actions" id="quickActions">
+        <a class="quick-action-card" id="qaInventory">
+          <svg width="28" height="28" fill="none" stroke="var(--green)" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <div class="qa-label">Manage Inventory</div>
+        </a>
+        <a class="quick-action-card" id="qaSales">
+          <svg width="28" height="28" fill="none" stroke="var(--yellow-dark)" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <div class="qa-label">Record Sales</div>
+        </a>
+        <a class="quick-action-card" id="qaEmployees">
+          <svg width="28" height="28" fill="none" stroke="#6B3FA0" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="qa-label">Manage Employees</div>
+        </a>
+        <a class="quick-action-card" id="qaReports">
+          <svg width="28" height="28" fill="none" stroke="var(--danger)" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <div class="qa-label">View Reports</div>
+        </a>
+      </div>
+
+      <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-value" id="kpiRevenue">&#8369;0</div>
+          <div style="font-size:0.75rem;color:var(--gray-400)">This Month</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Total Expenses</div>
+          <div class="kpi-value" id="kpiExpenses" style="color:var(--green)">&#8369;0</div>
+          <div style="font-size:0.75rem;color:var(--gray-400)">This Month</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        </div>
+        <div class="kpi-card danger">
+          <div class="kpi-label">Low Stock Items</div>
+          <div class="kpi-value" id="kpiLowStock" style="color:var(--danger)">0</div>
+          <div style="font-size:0.75rem;color:var(--gray-400)">Needs Attention</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        </div>
+        <div class="kpi-card black">
+          <div class="kpi-label">Net Profit</div>
+          <div class="kpi-value" id="kpiProfit">&#8369;0</div>
+          <div style="font-size:0.75rem;color:var(--gray-400)">Revenue - Expenses</div>
+          <div class="kpi-icon-box"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Revenue vs Expenses</span></div>
+          <div style="position:relative;height:250px;width:100%"><canvas id="revExpChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Sales</span>
+            <a id="linkAllSales" style="font-size:0.82rem;color:var(--green);font-weight:600;cursor:pointer">View All</a>
+          </div>
+          <div id="recentSalesList">
+            <div class="empty-state" style="padding:30px 10px"><h3>No sales yet</h3><p>Start recording sales to see them here</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Top Selling Products</span></div>
+          <div id="topProductsList" style="padding:8px 16px"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Lowest Selling Products</span></div>
+          <div id="lowProductsList" style="padding:8px 16px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const BIZ_META = {
+  RENTAL:   { name: 'Rental', color: '#6B3FA0', bg: '#EDE7F6', desc: 'Rental services and property management' },
+  BUSINESS: { name: 'Business', color: '#2d6a2e', bg: '#E8F5E9', desc: 'Commercial and trading operations' },
+  AGRI:     { name: 'Agriculture', color: '#D4A915', bg: '#FFF8E1', desc: 'Agricultural produce and farming' },
+  NON_AGRI: { name: 'Non-Agriculture', color: '#1A1A1A', bg: '#F5F5F5', desc: 'Non-agricultural products and services' },
+};
+
+let BIZ = 'RENTAL';
+
+function buildNav() {
+  document.getElementById('mgrNav').innerHTML = `
+    <a class="nav-item active" href="/manager/dashboard"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Dashboard</a>
+    <a class="nav-item" href="/manager/inventory"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span> Inventory</a>
+    <a class="nav-item" href="/manager/sales"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Sales</a>
+    <a class="nav-item" href="/manager/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
+    <a class="nav-item" href="/manager/employees"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Employees</a>
+    <a class="nav-item" href="/manager/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
+    <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+  `;
+}
+
+let revExpChart;
+
+async function loadDashboardData() {
+  let sales = [], expenses = [], inventory = [];
+  const [sRes, eRes, iRes] = await Promise.allSettled([
+    API.get('/api/sales?biz=' + BIZ),
+    API.get('/api/expenses?biz=' + BIZ),
+    API.get('/api/inventory?biz=' + BIZ),
+  ]);
+  if (sRes.status === 'fulfilled' && sRes.value.success) sales = sRes.value.data || [];
+  if (eRes.status === 'fulfilled' && eRes.value.success) expenses = eRes.value.data || [];
+  if (iRes.status === 'fulfilled' && iRes.value.success) inventory = iRes.value.data || [];
+
+  const salesRev = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+  const incomeRev = expenses.filter(e => e.type==='income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+  const totalRevenue = salesRev + incomeRev;
+  const totalExpenses = expenses.filter(e => e.type==='expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+  const lowStock = inventory.filter(p => {
+    const qty = parseInt(p.quantity||p.stock||0);
+    const reorder = parseInt(p.reorderLevel||10);
+    return qty <= reorder;
+  });
+  const netProfit = totalRevenue - totalExpenses;
+
+  document.getElementById('kpiRevenue').innerHTML = '&#8369;' + totalRevenue.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('kpiExpenses').innerHTML = '&#8369;' + totalExpenses.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('kpiLowStock').textContent = lowStock.length;
+  document.getElementById('kpiProfit').innerHTML = '&#8369;' + netProfit.toLocaleString('en',{minimumFractionDigits:2});
+  document.getElementById('kpiProfit').style.color = netProfit >= 0 ? 'var(--green)' : 'var(--danger)';
+
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  const last6 = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    last6.push({ label: months[d.getMonth()], key: d.toISOString().substring(0,7) });
+  }
+  const revByMonth = last6.map(m => {
+    const sRev = sales.filter(s => (s.date||s.createdAt||'').startsWith(m.key)).reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const iRev = expenses.filter(e => e.type==='income' && (e.date||'').startsWith(m.key)).reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    return sRev + iRev;
+  });
+  const expByMonth = last6.map(m => {
+    return expenses.filter(e => e.type==='expense' && (e.date||'').startsWith(m.key)).reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+  });
+
+  if (revExpChart) revExpChart.destroy();
+  const meta = BIZ_META[BIZ] || BIZ_META.RENTAL;
+  revExpChart = new Chart(document.getElementById('revExpChart'), {
+    type: 'bar',
+    data: {
+      labels: last6.map(m => m.label),
+      datasets: [
+        { label: 'Revenue', data: revByMonth, backgroundColor: meta.color, borderRadius: 6 },
+        { label: 'Expenses', data: expByMonth, backgroundColor: '#ccc', borderRadius: 6 },
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+      scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+    }
+  });
+
+  const recentEl = document.getElementById('recentSalesList');
+  const recent = sales.slice(0, 5);
+  if (!recent.length) {
+    recentEl.innerHTML = '<div class="empty-state" style="padding:30px 10px"><h3>No sales yet</h3><p>Start recording sales to see them here</p></div>';
+  } else {
+    recentEl.innerHTML = recent.map(s => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--gray-200)">
+        <div>
+          <div style="font-weight:600;font-size:0.88rem">${(s.items||[]).map(i=>i.name).join(', ')||'Sale'}</div>
+          <div style="font-size:0.75rem;color:var(--gray-400)">${new Date(s.date||s.createdAt).toLocaleDateString()} - ${s.paymentMethod||'cash'}</div>
+        </div>
+        <div style="font-weight:700;color:var(--green)">&#8369;${parseFloat(s.total||0).toLocaleString('en',{minimumFractionDigits:2})}</div>
+      </div>`).join('');
+  }
+
+  const productMap = {};
+  sales.forEach(s => {
+    (s.items||[]).forEach(i => {
+      const key = i.name||'Unknown';
+      if(!productMap[key]) productMap[key] = { name:key, qty:0, revenue:0 };
+      productMap[key].qty += parseInt(i.quantity||i.qty||1);
+      productMap[key].revenue += parseFloat(i.subtotal||i.unitPrice||0);
+    });
+  });
+  const allProducts = Object.values(productMap);
+
+  const topEl = document.getElementById('topProductsList');
+  const top5 = [...allProducts].sort((a,b) => b.revenue - a.revenue).slice(0,5);
+  if(!top5.length) {
+    topEl.innerHTML = '<div class="empty-state" style="padding:20px 10px"><h3>No sales yet</h3><p>Record sales to see top products</p></div>';
+  } else {
+    topEl.innerHTML = top5.map((p,i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-200)">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;${i===0?'background:#FFD700;color:#000':i===1?'background:#C0C0C0;color:#000':i===2?'background:#CD7F32;color:#fff':'background:var(--gray-200);color:var(--gray-600)'}">${i+1}</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:0.88rem">${p.name}</div><small style="color:var(--gray-400)">${p.qty} sold</small></div>
+        <div style="font-weight:700;font-size:0.85rem">&#8369;${p.revenue.toLocaleString('en',{minimumFractionDigits:2})}</div>
+      </div>`).join('');
+  }
+
+  const lowEl = document.getElementById('lowProductsList');
+  const bottom5 = [...allProducts].sort((a,b) => a.qty - b.qty).slice(0,5);
+  if(!bottom5.length) {
+    lowEl.innerHTML = '<div class="empty-state" style="padding:20px 10px"><h3>No data</h3><p>Record sales to see underperforming products</p></div>';
+  } else {
+    lowEl.innerHTML = bottom5.map((p,i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-200)">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;background:var(--danger-light);color:var(--danger)">${i+1}</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:0.88rem">${p.name}</div><small style="color:var(--gray-400)">Only ${p.qty} sold</small></div>
+        <div style="font-weight:700;font-size:0.82rem;color:var(--danger)">&#8369;${p.revenue.toLocaleString('en',{minimumFractionDigits:2})}</div>
+      </div>`).join('');
+  }
+}
+
+async function initPage() {
+  buildNav();
+  const u = await getCurrentUser();
+  if (u) {
+    const bizAccess = u.businessAccess || [];
+    BIZ = bizAccess.includes('all') ? 'RENTAL' : (bizAccess[0] || 'RENTAL');
+    document.getElementById('sidebarName').textContent = u.name;
+    document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role);
+    document.getElementById('sidebarAvatar').textContent = u.name.charAt(0).toUpperCase();
+  }
+  const meta = BIZ_META[BIZ] || BIZ_META.RENTAL;
+  document.getElementById('bizTitle').textContent = meta.name + ' Dashboard';
+  document.getElementById('bizSubtitle').textContent = meta.desc;
+  document.getElementById('bizIcon').style.background = meta.bg;
+  document.getElementById('bizIcon').querySelector('svg').setAttribute('stroke', meta.color);
+  document.getElementById('topbarTitle').textContent = meta.name + ' - Dashboard';
+  document.title = meta.name + ' Dashboard - OBA System';
+  document.getElementById('qaInventory').href = '/manager/inventory';
+  document.getElementById('qaSales').href = '/manager/sales';
+  document.getElementById('qaEmployees').href = '/manager/employees';
+  document.getElementById('qaReports').href = '/manager/reports';
+  document.getElementById('linkAllSales').onclick = () => location.href = '/manager/sales';
+  await loadDashboardData();
+}
+
+document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>

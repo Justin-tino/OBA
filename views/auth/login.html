@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — OBA System | PSAU</title>
+  <meta name="description" content="Login to the Office of Business Affairs System — Pampanga State Agricultural University">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { background: var(--black); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 0; margin: 0; }
+    .auth-wrap { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; width: 100%; background: var(--white); overflow: hidden; }
+    .auth-left {
+      background: linear-gradient(165deg, #2d6a2e 0%, #3a8c3b 30%, #4a9e4b 60%, #3a8c3b 100%);
+      padding: 48px 40px; display: flex; flex-direction: column; justify-content: space-between; color: var(--white);
+      position: relative; overflow: hidden;
+    }
+    .auth-left::before { content: ''; position: absolute; inset: 0; background: url('/images/psaubg.jpg') center/cover no-repeat; opacity: 0.15; }
+    .auth-left > * { position: relative; z-index: 2; }
+    .auth-left-top { display: flex; align-items: center; gap: 12px; }
+    .auth-left-top img { width: 44px; height: 44px; object-fit: contain; filter: brightness(1.1); }
+    .auth-left-top-text { display: flex; flex-direction: column; }
+    .auth-left-top-name { font-size: 0.85rem; font-weight: 700; color: var(--white); letter-spacing: 0.02em; }
+    .auth-left-top-sub { font-size: 0.72rem; color: rgba(255,255,255,0.75); font-weight: 500; }
+    .auth-left-hero { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .auth-left h1 { font-size: 2.6rem; font-weight: 800; line-height: 1.15; margin-bottom: 18px; }
+    .auth-left h1 .highlight-green { color: #7dff7d; }
+    .auth-left h1 .highlight-yellow { color: #FFD700; }
+    .auth-left p { font-size: 0.92rem; color: rgba(255,255,255,0.8); line-height: 1.7; max-width: 400px; }
+    .auth-left-footer { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
+    .auth-right { padding: 48px 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow-y: auto; }
+    .auth-right-inner { max-width: 420px; width: 100%; }
+    .auth-logo-wrap { text-align: center; margin-bottom: 20px; }
+    .auth-logo-wrap img { width: 70px; height: 70px; object-fit: contain; margin: 0 auto 10px; }
+    .auth-right-title { font-size: 1.4rem; font-weight: 800; color: var(--black); margin-bottom: 4px; text-align: center; }
+    .auth-right-sub { font-size: 0.85rem; color: var(--gray-600); margin-bottom: 24px; text-align: center; }
+    .auth-form { width: 100%; }
+    .auth-link { font-size: 0.85rem; color: var(--gray-600); text-align: center; margin-top: 14px; }
+    .auth-link a { color: var(--green); font-weight: 600; cursor: pointer; }
+    .auth-link a:hover { color: var(--yellow-dark); }
+    .err-msg { background: var(--danger-light); color: var(--danger); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 14px; display: none; }
+    .success-msg { background: var(--green-light); color: var(--green); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 14px; display: none; }
+    .input-pw-wrap { position: relative; }
+    .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 0.95rem; }
+    .login-btn {
+      background: linear-gradient(135deg, #2d6a2e 0%, #3a8c3b 100%);
+      color: var(--white); font-weight: 700; font-size: 0.95rem;
+      padding: 13px 28px; border-radius: var(--radius-sm);
+      border: none; cursor: pointer; width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: var(--transition); font-family: var(--font-main);
+    }
+    .login-btn:hover { background: linear-gradient(135deg, #236024 0%, #2d7a2e 100%); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+    .tab-bar { display: flex; border-bottom: 2px solid var(--gray-200); margin-bottom: 24px; }
+    .tab-bar button { flex: 1; padding: 12px; background: none; border: none; font-weight: 700; font-size: 0.9rem; color: var(--gray-400); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; font-family: var(--font-main); }
+    .tab-bar button.active { color: var(--green); border-bottom-color: var(--green); }
+    .tab-bar button:hover { color: var(--green); }
+    .tab-panel { display: none; } .tab-panel.active { display: block; }
+    .otp-input { letter-spacing: 12px; font-size: 1.5rem; font-weight: 800; text-align: center; padding: 14px !important; }
+    .otp-timer { text-align: center; font-size: 0.82rem; color: var(--gray-400); margin-top: 8px; }
+    @media (max-width: 700px) {
+      .auth-wrap { grid-template-columns: 1fr; }
+      .auth-left { display: none; }
+      .auth-right { padding: 32px 24px; }
+    }
+
+    /* Role & Category selection styles */
+    .role-option, .cat-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      background: var(--white);
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      text-decoration: none;
+      margin-bottom: 12px;
+    }
+    .role-option:hover, .cat-option:hover {
+      border-color: var(--green);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .role-icon, .cat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .role-details {
+      flex: 1;
+      text-align: left;
+    }
+    .role-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--black);
+    }
+    .role-desc {
+      font-size: 0.78rem;
+      color: var(--gray-500);
+      margin-top: 2px;
+    }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .cat-option {
+      flex-direction: column;
+      text-align: center;
+      justify-content: center;
+      padding: 20px 12px;
+      margin-bottom: 0;
+    }
+    .cat-icon {
+      margin-bottom: 10px;
+    }
+    .cat-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--black);
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-left">
+      <div class="auth-left-top">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        <div class="auth-left-top-text">
+          <div class="auth-left-top-name">PAMPANGA STATE AGRICULTURAL UNIVERSITY</div>
+          <div class="auth-left-top-sub">OFFICE OF BUSINESS AFFAIRS</div>
+        </div>
+      </div>
+      <div class="auth-left-hero">
+        <h1><span class="highlight-green">Smart</span> Inventory,<br><span class="highlight-yellow">Smarter</span> Decisions</h1>
+        <p>A unified platform for multi-business monitoring, inventory management and financial monitoring.</p>
+      </div>
+      <div class="auth-left-footer"></div>
+    </div>
+
+    <div class="auth-right">
+      <div class="auth-right-inner">
+        <div class="auth-logo-wrap">
+          <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        </div>
+
+        <!-- Role Selection Screen -->
+        <div id="roleSelectionCard">
+          <h2 class="auth-right-title">Select Your Role</h2>
+          <p class="auth-right-sub">Choose your access level to proceed to login</p>
+          
+          <div style="margin-bottom: 16px;">
+            <div class="role-option" onclick="selectRole('admin')">
+              <div class="role-icon" style="background:#E3F2FD; color:#1976D2">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div class="role-details">
+                <div class="role-name">Administrator</div>
+                <div class="role-desc">Full administrative access and settings</div>
+              </div>
+            </div>
+            <div class="role-option" onclick="selectRole('manager')">
+              <div class="role-icon" style="background:#E8F5E9; color:#2E7D32">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div class="role-details">
+                <div class="role-name">Business Manager</div>
+                <div class="role-desc">Manage assigned category and inventory</div>
+              </div>
+            </div>
+            <div class="role-option" onclick="selectRole('employee')">
+              <div class="role-icon" style="background:#FFF8E1; color:#F57F17">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              <div class="role-details">
+                <div class="role-name">Employee / Cashier</div>
+                <div class="role-desc">POS scanner sales and inventory operations</div>
+              </div>
+            </div>
+            <div class="role-option" onclick="selectRole('viewer')">
+              <div class="role-icon" style="background:#F3E5F5; color:#7B1FA2">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="role-details">
+                <div class="role-name">View Only</div>
+                <div class="role-desc">Read and print reports only</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Selection Screen -->
+        <div id="categorySelectionCard" style="display:none;">
+          <h2 class="auth-right-title">Select Business Category</h2>
+          <p class="auth-right-sub">Select the specific category you belong to</p>
+          
+          <div class="cat-grid">
+            <div class="cat-option" onclick="selectCategory('RENTAL')">
+              <div class="cat-icon" style="background:#EDE7F6; color:#6B3FA0">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+              </div>
+              <div class="cat-name">Rental Services</div>
+            </div>
+            <div class="cat-option" onclick="selectCategory('BUSINESS')">
+              <div class="cat-icon" style="background:#E8F5E9; color:#2d6a2e">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 10h20M7 2v8M17 2v8M12 14v4M8 16h8"/></svg>
+              </div>
+              <div class="cat-name">Business / Commercial</div>
+            </div>
+            <div class="cat-option" onclick="selectCategory('AGRI')">
+              <div class="cat-icon" style="background:#FFF8E1; color:#D4A915">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
+              <div class="cat-name">Agriculture</div>
+            </div>
+            <div class="cat-option" onclick="selectCategory('NON_AGRI')">
+              <div class="cat-icon" style="background:#F5F5F5; color:#1A1A1A">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <div class="cat-name">Non-Agriculture</div>
+            </div>
+          </div>
+          <div style="text-align:center;">
+            <button class="login-btn" onclick="backToRoles()" style="background:var(--gray-200); color:var(--gray-700); padding: 8px 16px; font-size: 0.82rem; width: auto; display: inline-flex;">← Back to Roles</button>
+          </div>
+        </div>
+
+        <!-- Auth Form Card -->
+        <div id="authFormCard" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">
+            <button class="login-btn" onclick="backFromAuthForm()" style="background:var(--gray-200); color:var(--gray-700); padding: 6px 12px; font-size: 0.8rem; width: auto; display: inline-flex; margin: 0;">← Back</button>
+            <span id="selectedIndicator" style="font-size:0.75rem; font-weight:700; color:var(--green); background:var(--green-light); padding:4px 10px; border-radius:12px;"></span>
+          </div>
+
+          <div class="tab-bar">
+            <button class="active" onclick="switchTab('login')">Sign In</button>
+            <button onclick="switchTab('signup')">Create Account</button>
+          </div>
+
+          <!-- LOGIN TAB -->
+          <div class="tab-panel active" id="tab-login">
+            <div class="err-msg" id="errMsg"></div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" id="email" class="form-control" placeholder="Enter your email" autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="input-pw-wrap">
+                <input type="password" id="password" class="form-control" placeholder="Enter your password" autocomplete="current-password">
+                <button type="button" class="pw-toggle" onclick="togglePw('password')" style="display:flex;align-items:center;justify-content:center;padding:0;">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <button class="login-btn" id="loginBtn" onclick="doLogin()">
+              <span id="loginBtnTxt">Login</span>
+            </button>
+            <div class="auth-link" style="text-align:center; margin-top:20px;">
+              <a href="/forgot-password" style="font-weight:600; color:var(--gray-600)">Forgot Password?</a>
+            </div>
+          </div>
+
+          <!-- SIGNUP TAB -->
+          <div class="tab-panel" id="tab-signup">
+            <div class="err-msg" id="signupErr"></div>
+            <div class="success-msg" id="signupSuccess"></div>
+
+            <!-- Step 1: Info + Send OTP -->
+            <div id="signupStep1">
+              <div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="s_name" class="form-control" placeholder="Your full name"></div>
+              <div class="form-group"><label class="form-label">Email *</label><input type="email" id="s_email" class="form-control" placeholder="you@email.com"></div>
+              <div class="form-group"><label class="form-label">Password *</label>
+                <div class="input-pw-wrap">
+                  <input type="password" id="s_password" class="form-control" placeholder="Min 6 characters">
+                  <button type="button" class="pw-toggle" onclick="togglePw('s_password')" style="display:flex;align-items:center;justify-content:center;padding:0;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">Confirm Password *</label>
+                <div class="input-pw-wrap">
+                  <input type="password" id="s_confirm" class="form-control" placeholder="Confirm password">
+                  <button type="button" class="pw-toggle" onclick="togglePw('s_confirm')" style="display:flex;align-items:center;justify-content:center;padding:0;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="form-group"><label class="form-label">Position (optional)</label><input type="text" id="s_position" class="form-control" placeholder="e.g. Staff, Manager"></div>
+              <button class="login-btn" id="sendOtpBtn" onclick="sendSignupOtp()" style="margin-top:8px">
+                <span id="sendOtpTxt">Send Verification Code</span>
+              </button>
+            </div>
+
+            <!-- Step 2: Enter OTP -->
+            <div id="signupStep2" style="display:none;">
+              <p style="text-align:center;color:var(--gray-600);margin-bottom:16px;">A 6-digit code was sent to <strong id="otpEmailDisplay"></strong></p>
+              <div class="form-group"><label class="form-label">Enter OTP Code</label><input type="text" id="s_otp" class="form-control otp-input" placeholder="------" maxlength="6"></div>
+              <div class="otp-timer" id="otpTimer"></div>
+              <button class="login-btn" id="verifyBtn" onclick="verifyAndRegister()" style="margin-top:12px">
+                <span id="verifyBtnTxt">Verify & Create Account</span>
+              </button>
+              <div class="auth-link" style="margin-top:12px"><a onclick="backToStep1()">← Back to form</a></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <script src="/js/app.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    let fbAuth = null;
+    (async () => {
+      try {
+        const res = await fetch('/api/firebase-config');
+        const config = await res.json();
+        if (config && config.apiKey && config.apiKey !== 'PLACEHOLDER') {
+          const app = initializeApp(config);
+          fbAuth = getAuth(app);
+        }
+      } catch (e) { console.warn("Firebase init failed:", e); }
+    })();
+
+    window.selectedRole = null;
+    window.selectedCategory = null;
+
+    window.selectRole = function(role) {
+      window.selectedRole = role;
+      sessionStorage.setItem('selectedRole', role);
+      sessionStorage.removeItem('selectedCategory');
+      
+      document.getElementById('roleSelectionCard').style.display = 'none';
+      if (role === 'employee' || role === 'manager') {
+        document.getElementById('categorySelectionCard').style.display = 'block';
+      } else {
+        showAuthForm();
+      }
+    };
+
+    window.selectCategory = function(category) {
+      window.selectedCategory = category;
+      sessionStorage.setItem('selectedCategory', category);
+      document.getElementById('categorySelectionCard').style.display = 'none';
+      showAuthForm();
+    };
+
+    window.backToRoles = function() {
+      document.getElementById('categorySelectionCard').style.display = 'none';
+      document.getElementById('roleSelectionCard').style.display = 'block';
+    };
+
+    window.backFromAuthForm = function() {
+      document.getElementById('authFormCard').style.display = 'none';
+      if (window.selectedRole === 'employee' || window.selectedRole === 'manager') {
+        document.getElementById('categorySelectionCard').style.display = 'block';
+      } else {
+        document.getElementById('roleSelectionCard').style.display = 'block';
+      }
+    };
+
+    function showAuthForm() {
+      const ind = document.getElementById('selectedIndicator');
+      let text = '';
+      if (window.selectedRole === 'admin') text = 'Administrator';
+      else if (window.selectedRole === 'viewer') text = 'View Only';
+      else if (window.selectedRole === 'employee') text = `Employee: ${formatCategoryName(window.selectedCategory)}`;
+      else if (window.selectedRole === 'manager') text = `Manager: ${formatCategoryName(window.selectedCategory)}`;
+      
+      ind.textContent = text;
+      document.getElementById('authFormCard').style.display = 'block';
+    }
+
+    function formatCategoryName(cat) {
+      if (cat === 'RENTAL') return 'Rental';
+      if (cat === 'BUSINESS') return 'Business';
+      if (cat === 'AGRI') return 'Agriculture';
+      if (cat === 'NON_AGRI') return 'Non-Agri';
+      return cat || '';
+    }
+
+    window.togglePw = function(id) {
+      const pw = document.getElementById(id);
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+    };
+
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab-bar button').forEach((b, i) => {
+        b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'signup' && i === 1));
+      });
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+      document.getElementById('errMsg').style.display = 'none';
+      document.getElementById('signupErr').style.display = 'none';
+      document.getElementById('signupSuccess').style.display = 'none';
+    };
+
+    window.doLogin = async function() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errMsg = document.getElementById('errMsg');
+      const btn = document.getElementById('loginBtn');
+      if (!email || !password) { errMsg.textContent = 'Please enter your email and password.'; errMsg.style.display = 'block'; return; }
+      btn.disabled = true;
+      document.getElementById('loginBtnTxt').textContent = 'Signing in...';
+      errMsg.style.display = 'none';
+      let idToken = null;
+      if (fbAuth) {
+        try {
+          const uc = await signInWithEmailAndPassword(fbAuth, email, password);
+          idToken = await uc.user.getIdToken();
+        } catch (err) { console.warn("Firebase Auth error:", err); }
+      }
+      try {
+        const payload = idToken ? { idToken } : { email, password };
+        payload.selectedRole = window.selectedRole || sessionStorage.getItem('selectedRole') || null;
+        payload.selectedCategory = window.selectedCategory || sessionStorage.getItem('selectedCategory') || null;
+        const res = await fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.success) {
+          Toast.success('Login successful! Redirecting...');
+          setTimeout(() => window.location.href = data.redirect, 800);
+        } else {
+          errMsg.textContent = data.message || 'Invalid credentials.';
+          errMsg.style.display = 'block';
+          btn.disabled = false;
+          document.getElementById('loginBtnTxt').textContent = 'Login';
+        }
+      } catch (err) {
+        errMsg.textContent = 'Server error. Please try again.';
+        errMsg.style.display = 'block';
+        btn.disabled = false;
+        document.getElementById('loginBtnTxt').textContent = 'Login';
+      }
+    };
+
+    // Signup state
+    let signupData = {};
+
+    window.sendSignupOtp = async function() {
+      const name = document.getElementById('s_name').value.trim();
+      const email = document.getElementById('s_email').value.trim();
+      const pw = document.getElementById('s_password').value;
+      const pw2 = document.getElementById('s_confirm').value;
+      const errEl = document.getElementById('signupErr');
+      errEl.style.display = 'none';
+      if (!name || !email || !pw) { errEl.textContent = 'Name, email, and password are required.'; errEl.style.display = 'block'; return; }
+      if (pw.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+      if (pw !== pw2) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+      const btn = document.getElementById('sendOtpBtn');
+      btn.disabled = true;
+      document.getElementById('sendOtpTxt').textContent = 'Sending...';
+      try {
+        const res = await fetch('/api/signup/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, name }) });
+        const data = await res.json();
+        if (data.success) {
+          signupData = { name, email, password: pw, position: document.getElementById('s_position').value };
+          document.getElementById('signupStep1').style.display = 'none';
+          document.getElementById('signupStep2').style.display = 'block';
+          document.getElementById('otpEmailDisplay').textContent = email;
+          startOtpTimer();
+        } else {
+          errEl.textContent = data.message; errEl.style.display = 'block';
+        }
+      } catch (e) { errEl.textContent = 'Server error.'; errEl.style.display = 'block'; }
+      btn.disabled = false;
+      document.getElementById('sendOtpTxt').textContent = 'Send Verification Code';
+    };
+
+    let otpInterval;
+    function startOtpTimer() {
+      let secs = 600;
+      const el = document.getElementById('otpTimer');
+      clearInterval(otpInterval);
+      otpInterval = setInterval(() => {
+        secs--;
+        const m = Math.floor(secs / 60), s = secs % 60;
+        el.textContent = `Code expires in ${m}:${s.toString().padStart(2, '0')}`;
+        if (secs <= 0) { clearInterval(otpInterval); el.textContent = 'Code expired. Go back and resend.'; }
+      }, 1000);
+    }
+
+    window.verifyAndRegister = async function() {
+      const otp = document.getElementById('s_otp').value.trim();
+      const errEl = document.getElementById('signupErr');
+      const succEl = document.getElementById('signupSuccess');
+      errEl.style.display = 'none'; succEl.style.display = 'none';
+      if (!otp || otp.length !== 6) { errEl.textContent = 'Please enter the 6-digit code.'; errEl.style.display = 'block'; return; }
+      const btn = document.getElementById('verifyBtn');
+      btn.disabled = true;
+      document.getElementById('verifyBtnTxt').textContent = 'Verifying...';
+      try {
+        const res = await fetch('/api/signup/verify-and-register', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...signupData, otp })
+        });
+        const data = await res.json();
+        if (data.success) {
+          clearInterval(otpInterval);
+          document.getElementById('signupStep2').style.display = 'none';
+          succEl.textContent = 'Account requested, wait for admin approval.';
+          succEl.style.display = 'block';
+        } else {
+          errEl.textContent = data.message; errEl.style.display = 'block';
+        }
+      } catch (e) { errEl.textContent = 'Server error.'; errEl.style.display = 'block'; }
+      btn.disabled = false;
+      document.getElementById('verifyBtnTxt').textContent = 'Verify & Create Account';
+    };
+
+    window.backToStep1 = function() {
+      document.getElementById('signupStep2').style.display = 'none';
+      document.getElementById('signupStep1').style.display = 'block';
+      clearInterval(otpInterval);
+    };
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Enter') { 
+      if (document.getElementById('tab-login').classList.contains('active')) window.doLogin();
+    }});
+  </script>
+</body>
+</html>
