@@ -232,15 +232,14 @@ async function saveProduct() {
 }
 
 async function deleteProduct(id) {
-  if (!window.confirm('Delete this product?')) return;
+  if (!window.confirm('Delete this product "' + id + '"?')) return;
   try {
-    const res = await fetch('/api/inventory/' + id + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', credentials: 'same-origin' });
+    const res = await fetch('/api/inventory/' + encodeURIComponent(id) + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    if (!res.ok) { const txt = await res.text().catch(()=>''); throw new Error('HTTP ' + res.status + ' ' + txt.substring(0,60)); }
     const data = await res.json();
-    if (data.success) { Toast.success('Product deleted'); loadData(); }
-    else { Toast.error(data.message || 'Delete failed'); }
-  } catch(e) {
-    Toast.error('Delete failed: ' + e.message);
-  }
+    if (data.success) { Toast.success('Deleted!'); loadData(); }
+    else { Toast.error(data.message || 'Failed'); }
+  } catch(e) { alert('Delete error: ' + e.message); }
 }
 
 function showQRCode(id, name, cat) {

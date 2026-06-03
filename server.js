@@ -20,6 +20,20 @@ const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
+// ─── CORS (allow Live Server on port 5500 to access API) ──────────────────────
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowed = ['http://localhost:3000', 'http://localhost:5500', 'http://localhost:5501'];
+  if (allowed.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 // ─── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: {
@@ -30,7 +44,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://firestore.googleapis.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://www.googleapis.com", "wss://*.firebaseio.com", "https://*.firebaseio.com"],
+      connectSrc: ["'self'", "http://localhost:3000", "https://cdn.jsdelivr.net", "https://firestore.googleapis.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://www.googleapis.com", "wss://*.firebaseio.com", "https://*.firebaseio.com"],
     },
   },
 }));
@@ -46,7 +60,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     httpOnly: true,
     maxAge: 8 * 60 * 60 * 1000, // 8 hours
   },
