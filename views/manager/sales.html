@@ -98,6 +98,14 @@
 <script>
 let BIZ = 'RENTAL';
 let sales = [];
+let taxRates = {};
+
+async function loadTaxRates() {
+  try {
+    const res = await API.get('/api/admin/taxes');
+    if (res.success) taxRates = res.data || {};
+  } catch(e) { /* skip */ }
+}
 
 function buildNav() {
   document.getElementById('mgrNav').innerHTML = `
@@ -180,10 +188,16 @@ async function recordSale() {
   if (!productId) { Toast.warning('Please select a product'); return; }
   if (qty < 1) { Toast.warning('Quantity must be at least 1'); return; }
   if (price <= 0) { Toast.warning('Invalid price'); return; }
+  const subtotal = price * qty;
+  const rate = taxRates[BIZ] || 0;
+  const taxAmount = subtotal * (rate / 100);
   try {
     const res = await API.post('/api/sales', {
-      items: [{ id: productId, name: productName, quantity: qty, unitPrice: price, subtotal: price * qty }],
-      total: price * qty,
+      items: [{ id: productId, name: productName, quantity: qty, unitPrice: price, subtotal }],
+      subtotal,
+      taxRate: rate,
+      taxAmount,
+      total: subtotal + taxAmount,
       paymentMethod: payment,
       notes,
       businessCategory: BIZ,
@@ -200,6 +214,7 @@ async function recordSale() {
 
 async function initPage() {
   buildNav();
+  await loadTaxRates();
   loadProducts();
   const u = await getCurrentUser();
   if (u) {
