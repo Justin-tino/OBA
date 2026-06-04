@@ -17,12 +17,13 @@ function requireManagerOnly(req, res, next) {
   next();
 }
 
-// ─── Business Categories (4 main categories) ──────────────────────────────────
+// ─── Business Categories (5 main categories) ──────────────────────────────────
 const BUSINESS_CATEGORIES = [
   { id: 'RENTAL', name: 'Rental', type: 'Rental', description: 'Rental services and property management', color: '#6B3FA0' },
   { id: 'BUSINESS', name: 'Business', type: 'Business', description: 'Commercial and trading operations', color: '#2d6a2e' },
   { id: 'AGRI', name: 'Agriculture', type: 'Agriculture', description: 'Agricultural produce and farming operations', color: '#D4A915' },
   { id: 'NON_AGRI', name: 'Non-Agriculture', type: 'Non-Agriculture', description: 'Non-agricultural products and services', color: '#1A1A1A' },
+  { id: 'MAIN', name: 'Main', type: 'Main', description: 'Main business operations and services', color: '#0D6EFD' },
 ];
 
 // Mock business entities (sub-businesses under each category)
@@ -628,7 +629,7 @@ router.get('/backup/info', requireSuperAdmin, async (req, res) => {
 });
 
 // GET /api/admin/taxes — list tax rates for each category (available to all logged in users)
-const defaultTaxes = { RENTAL: 12, BUSINESS: 12, AGRI: 0, NON_AGRI: 12 };
+const defaultTaxes = { RENTAL: 12, BUSINESS: 12, AGRI: 0, NON_AGRI: 12, MAIN: 12 };
 router.get('/taxes', requireViewer, async (req, res) => {
   try {
     if (!db) return res.json({ success: true, data: defaultTaxes });

@@ -2,7 +2,7 @@
  * routes/sales.js
  * Sales transaction CRUD per business category
  * Uses Firebase Realtime Database indexing
- * Categories: RENTAL, BUSINESS, AGRI, NON_AGRI
+ * Categories: RENTAL, BUSINESS, AGRI, NON_AGRI, MAIN
  */
 const express = require('express');
 const router = express.Router();
@@ -57,7 +57,7 @@ router.post('/', requireEmployee, async (req, res) => {
     const ref = db.ref(`sales/${biz}`).push();
     transaction.id = ref.key;
     transaction.transactionId = 'TXN-' + ref.key.substring(1, 8).toUpperCase();
-    
+
     // Recalculate total if not passed or zero
     if (!transaction.total && transaction.items.length > 0) {
       transaction.subtotal = transaction.items.reduce((sum, item) => sum + ((parseFloat(item.unitPrice) || 0) * (parseInt(item.quantity || item.qty) || 1)), 0);
@@ -65,9 +65,9 @@ router.post('/', requireEmployee, async (req, res) => {
       transaction.taxAmount = transaction.subtotal * (transaction.taxRate / 100);
       transaction.total = transaction.subtotal + transaction.taxAmount;
     }
-    
+
     await ref.set(transaction);
-    
+
     // Deduct inventory quantities
     for (const item of items) {
       if (item.id) {
@@ -78,13 +78,13 @@ router.post('/', requireEmployee, async (req, res) => {
           const deductQty = parseInt(item.quantity || item.qty || 1);
           const newQty = Math.max(0, parseInt(invData.quantity || 0) - deductQty);
           const reorder = parseInt(invData.reorderLevel || 10);
-          
+
           let status = 'in-stock';
           if (newQty <= 0) status = 'out-of-stock';
           else if (newQty <= reorder) status = 'low-stock';
-          
+
           await itemRef.update({ quantity: newQty, status });
-          
+
           // Generate notification if low stock
           if (status !== 'in-stock') {
             await db.ref('notifications').push({
@@ -113,7 +113,7 @@ router.delete('/:id', requireManager, async (req, res) => {
   const { id } = req.params;
   try {
     if (!db) return res.json({ success: true });
-    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'];
+    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI', 'MAIN'];
     for (const cat of categories) {
       const snap = await db.ref(`sales/${cat}/${id}`).once('value');
       if (snap.exists()) {

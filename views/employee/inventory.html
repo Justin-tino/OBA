@@ -80,9 +80,10 @@
       <div class="form-group"><label class="form-label">Selling Price * (&#8369;)</label><input id="p_price" type="number" class="form-control" placeholder="0.00" min="0" step="0.01"></div>
     </div>
     <div class="form-group"><label class="form-label">Supplier</label><input id="p_supplier" class="form-control" placeholder="Supplier name"></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea id="p_description" class="form-control" placeholder="Product description (e.g. sizes, variations)..." rows="3"></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
-      <button class="btn btn-outline btn-sm" id="deleteInEditBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteProduct(document.getElementById('p_id').value)"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
+      <button class="btn btn-outline btn-sm" id="deleteInEditBtn" style="display:none;color:var(--danger);border-color:var(--danger)" data-modal-delete="true"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
       <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
     </div>
   </div>
@@ -95,6 +96,7 @@ const BIZ_META = {
   BUSINESS: { name: 'Business', color: '#2d6a2e' },
   AGRI:     { name: 'Agriculture', color: '#D4A915' },
   NON_AGRI: { name: 'Non-Agriculture', color: '#1A1A1A' },
+  MAIN:     { name: 'Main', color: '#0D6EFD' },
 };
 const params = new URLSearchParams(window.location.search);
 const BIZ = params.get('biz') || 'RENTAL';
@@ -132,10 +134,10 @@ function updateKPIs() {
 function renderTable() {
   const search = document.getElementById('fSearch').value.toLowerCase();
   let list = products;
-  if (search) list = list.filter(p => (p.name||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search));
+  if (search) list = list.filter(p => (p.name||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search) || (p.description||'').toLowerCase().includes(search));
   const el = document.getElementById('invTable');
   if (!list.length) { el.innerHTML = '<div class="empty-state"><h3>No products found</h3><p>Click "Add Product" to start tracking inventory</p></div>'; return; }
-  el.innerHTML = `<table><thead><tr><th style="width: 70px;">QR Code</th><th>Product</th><th>Category</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  el.innerHTML = `<table><thead><tr><th style="width: 70px;">QR Code</th><th>Product</th><th>Description</th><th>Category</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>
     ${list.map(p => {
       const qty = p.quantity || 0;
       const reorder = p.reorderLevel || 10;
@@ -144,11 +146,14 @@ function renderTable() {
       else if (qty <= reorder) { status = 'Low Stock'; cls = 'low-stock'; }
       else { status = 'In Stock'; cls = 'in-stock'; }
       const qrUrl = p.qrCode || `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${p.id}`;
+      const desc = p.description || '';
+      const descShort = desc.length > 40 ? desc.substring(0,40)+'...' : desc;
       return `<tr>
         <td style="text-align: center; vertical-align: middle;">
           <img src="${qrUrl}" alt="QR" style="width:36px; height:36px; cursor:pointer; border-radius:4px; border:1px solid var(--gray-200); background:#fff; padding:2px; display:block; margin:0 auto;" onclick="showQRCode('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${(p.category||'').replace(/'/g, "\\'")}')" title="Click to view/print QR Code">
         </td>
         <td class="fw-bold">${p.name}</td>
+        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${desc.replace(/"/g,'&quot;')}">${desc ? descShort : '—'}</td>
         <td>${p.category || '—'}</td>
         <td>${qty}</td>
         <td>${p.unit || 'pcs'}</td>
@@ -158,6 +163,7 @@ function renderTable() {
         <td class="table-actions">
           <button class="btn btn-outline btn-sm" title="QR Code" onclick="showQRCode('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${(p.category||'').replace(/'/g, "\\'")}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm14 0h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zm-4 0h2v2h-2zm0-4h2v2h-2zm2 2h2v2h-2z"/></svg></button>
           <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="btn btn-outline btn-sm delete-btn" style="color:var(--danger);border-color:var(--danger)" data-id="${p.id}"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
         </td>
       </tr>`;
     }).join('')}
@@ -175,6 +181,7 @@ function openAdd() {
   document.getElementById('p_cost').value = '';
   document.getElementById('p_price').value = '';
   document.getElementById('p_supplier').value = '';
+  document.getElementById('p_description').value = '';
   document.getElementById('deleteInEditBtn').style.display = 'none';
   openModal('productModal');
 }
@@ -192,6 +199,7 @@ function editProduct(id) {
   document.getElementById('p_cost').value = p.unitCost || '';
   document.getElementById('p_price').value = p.sellingPrice || '';
   document.getElementById('p_supplier').value = p.supplier || '';
+  document.getElementById('p_description').value = p.description || '';
   document.getElementById('deleteInEditBtn').style.display = 'inline-flex';
   openModal('productModal');
 }
@@ -207,6 +215,7 @@ async function saveProduct() {
     unitCost: parseFloat(document.getElementById('p_cost').value) || 0,
     sellingPrice: parseFloat(document.getElementById('p_price').value) || 0,
     supplier: document.getElementById('p_supplier').value,
+    description: document.getElementById('p_description').value,
     businessCategory: BIZ,
   };
   if (!data.name) { Toast.warning('Product name is required'); return; }
@@ -232,14 +241,17 @@ async function saveProduct() {
 }
 
 async function deleteProduct(id) {
-  if (!window.confirm('Delete this product "' + id + '"?')) return;
+  if (!window.confirm('Delete this product?')) return;
   try {
-    const res = await fetch('/api/inventory/' + encodeURIComponent(id) + '/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-    if (!res.ok) { const txt = await res.text().catch(()=>''); throw new Error('HTTP ' + res.status + ' ' + txt.substring(0,60)); }
-    const data = await res.json();
-    if (data.success) { Toast.success('Deleted!'); loadData(); }
-    else { Toast.error(data.message || 'Failed'); }
-  } catch(e) { alert('Delete error: ' + e.message); }
+    const res = await API.del('/api/inventory/' + id + '?biz=' + BIZ);
+    if (res.success) {
+      Toast.success('Product deleted');
+      closeModal('productModal');
+      loadData();
+    } else {
+      Toast.error(res.message || 'Failed to delete');
+    }
+  } catch(e) { Toast.error('Error deleting: ' + e.message); }
 }
 
 function showQRCode(id, name, cat) {
@@ -285,6 +297,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.title = meta.name + ' Inventory - OBA System';
   loadData();
   getCurrentUser().then(u => { if(u){ document.getElementById('sidebarName').textContent = u.name; document.querySelector('.sidebar-user-role').textContent = 'Logged in as: ' + formatRole(u.role); document.getElementById('sidebarAvatar').textContent = u.name.charAt(0).toUpperCase(); }});
+
+  // Event delegation for delete buttons
+  document.getElementById('invTable').addEventListener('click', (e) => {
+    const btn = e.target.closest('.delete-btn');
+    if (btn) {
+      const id = btn.dataset.id;
+      if (id) deleteProduct(id);
+    }
+  });
+  document.getElementById('deleteInEditBtn').addEventListener('click', () => {
+    const id = document.getElementById('p_id').value;
+    if (id) deleteProduct(id);
+  });
 });
 </script>
 

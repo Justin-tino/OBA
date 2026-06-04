@@ -149,13 +149,7 @@ app.use((err, req, res, next) => {
 
 // ─── Start Server ──────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log('');
-  console.log('  ╔═══════════════════════════════════════╗');
-  console.log('  ║   OBA System — PSAU Capstone 1        ║');
-  console.log('  ║   Office of Business Affairs           ║');
-  console.log(`  ║   Running at http://localhost:${PORT}     ║`);
-  console.log('  ╚═══════════════════════════════════════╝');
-  console.log('');
+  console.log(`http://localhost:${PORT}`);
 });
 
 module.exports = app;

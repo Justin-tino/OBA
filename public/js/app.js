@@ -318,6 +318,7 @@ const BUSINESS_CATEGORIES = [
   { id: 'BUSINESS', name: 'Business', color: '#2d6a2e' },
   { id: 'AGRI', name: 'Agriculture', color: '#D4A915' },
   { id: 'NON_AGRI', name: 'Non-Agriculture', color: '#1A1A1A' },
+  { id: 'MAIN', name: 'Main', color: '#0D6EFD' },
 ];
 
 function getCategoryColor(catId) {

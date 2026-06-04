@@ -2,7 +2,7 @@
  * routes/expenses.js
  * Income & Expense tracking per business category
  * Uses Firebase Realtime Database indexing
- * Categories: RENTAL, BUSINESS, AGRI, NON_AGRI
+ * Categories: RENTAL, BUSINESS, AGRI, NON_AGRI, MAIN
  */
 const express = require('express');
 const router = express.Router();
@@ -76,7 +76,7 @@ router.delete('/:id', requireManager, async (req, res) => {
   const { id } = req.params;
   try {
     if (!db) return res.json({ success: true });
-    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'];
+    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI', 'MAIN'];
     for (const cat of categories) {
       const snap = await db.ref(`expenses/${cat}/${id}`).once('value');
       if (snap.exists()) {

@@ -87,6 +87,7 @@
       <div class="form-group"><label class="form-label">Selling Price * (&#8369;)</label><input id="p_price" type="number" class="form-control" placeholder="0.00" min="0" step="0.01"></div>
       <div class="form-group"><label class="form-label">Supplier</label><input id="p_supplier" class="form-control" placeholder="Supplier name"></div>
     </div>
+    <div class="form-group"><label class="form-label">Description</label><textarea id="p_description" class="form-control" placeholder="Product description (e.g. sizes, variations)..." rows="3"></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
@@ -136,12 +137,12 @@ function updateKPIs() {
 function renderTable() {
   const search = document.getElementById('fSearch').value.toLowerCase();
   let list = products;
-  if (search) list = list.filter(p => (p.name||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search));
+  if (search) list = list.filter(p => (p.name||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search) || (p.description||'').toLowerCase().includes(search));
 
   const el = document.getElementById('invTable');
   if (!list.length) { el.innerHTML = '<div class="empty-state"><h3>No products found</h3></div>'; return; }
 
-  el.innerHTML = `<table><thead><tr><th>Product</th><th>Category</th><th>Qty</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  el.innerHTML = `<table><thead><tr><th>Product</th><th>Description</th><th>Category</th><th>Qty</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>
     ${list.map(p => {
       const qty = p.quantity || 0;
       const reorder = p.reorderLevel || 10;
@@ -149,8 +150,11 @@ function renderTable() {
       if (qty === 0) { status = 'Out of Stock'; cls = 'out'; }
       else if (qty <= reorder) { status = 'Low Stock'; cls = 'low-stock'; }
       else { status = 'In Stock'; cls = 'in-stock'; }
+      const desc = p.description || '';
+      const descShort = desc.length > 45 ? desc.substring(0,45)+'...' : desc;
       return `<tr>
         <td class="fw-bold">${p.name}</td>
+        <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${desc.replace(/"/g,'&quot;')}">${desc ? descShort : '—'}</td>
         <td>${p.category || '—'}</td>
         <td>${qty}</td>
         <td>&#8369;${parseFloat(p.sellingPrice || 0).toLocaleString('en',{minimumFractionDigits:2})}</td>
@@ -175,6 +179,7 @@ function openAdd() {
   document.getElementById('p_cost').value = '';
   document.getElementById('p_price').value = '';
   document.getElementById('p_supplier').value = '';
+  document.getElementById('p_description').value = '';
   openModal('productModal');
 }
 
@@ -191,6 +196,7 @@ function editProduct(id) {
   document.getElementById('p_cost').value = p.unitCost || '';
   document.getElementById('p_price').value = p.sellingPrice || '';
   document.getElementById('p_supplier').value = p.supplier || '';
+  document.getElementById('p_description').value = p.description || '';
   openModal('productModal');
 }
 
@@ -204,6 +210,7 @@ async function saveProduct() {
     unitCost: parseFloat(document.getElementById('p_cost').value) || 0,
     sellingPrice: parseFloat(document.getElementById('p_price').value) || 0,
     supplier: document.getElementById('p_supplier').value,
+    description: document.getElementById('p_description').value,
     businessCategory: BIZ,
   };
   if (!data.name) { Toast.warning('Product name is required'); return; }

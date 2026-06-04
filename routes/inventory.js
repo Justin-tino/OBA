@@ -2,7 +2,7 @@
  * routes/inventory.js
  * Inventory management CRUD per business category
  * Uses Firebase Realtime Database with indexing (not collections)
- * Categories: RENTAL, BUSINESS, AGRI, NON_AGRI
+ * Categories: RENTAL, BUSINESS, AGRI, NON_AGRI, MAIN
  */
 const express = require('express');
 const router = express.Router();
@@ -33,7 +33,7 @@ router.get('/', requireViewer, async (req, res) => {
 
 // POST /api/inventory — add product
 router.post('/', requireEmployee, async (req, res) => {
-  const { name, category, unit, unitCost, quantity, sellingPrice, reorderLevel, supplier, businessCategory, entityId, entityName } = req.body;
+  const { name, category, unit, unitCost, quantity, sellingPrice, reorderLevel, supplier, description, businessCategory, entityId, entityName } = req.body;
   if (!name || !category || quantity === undefined || isNaN(quantity) || sellingPrice === undefined || isNaN(sellingPrice)) {
     return res.status(400).json({ success: false, message: 'Product Name, Category, Quantity, and Selling Price are mandatory fields.' });
   }
@@ -48,6 +48,7 @@ router.post('/', requireEmployee, async (req, res) => {
     quantity: stock,
     reorderLevel: reorder,
     supplier: supplier || '',
+    description: description || '',
     businessCategory: biz,
     entityId: entityId || '',
     entityName: entityName || '',
@@ -140,7 +141,7 @@ router.delete('/:id', requireEmployee, async (req, res) => {
   const { id } = req.params;
   try {
     if (!db) return res.json({ success: true });
-    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'];
+    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI', 'MAIN'];
     for (const cat of categories) {
       const snap = await db.ref(`inventory/${cat}/${id}`).once('value');
       if (snap.exists()) {
@@ -159,7 +160,7 @@ router.post('/:id/delete', requireEmployee, async (req, res) => {
   const { id } = req.params;
   try {
     if (!db) return res.json({ success: true });
-    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'];
+    const categories = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI', 'MAIN'];
     for (const cat of categories) {
       const snap = await db.ref(`inventory/${cat}/${id}`).once('value');
       if (snap.exists()) {

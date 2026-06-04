@@ -227,6 +227,12 @@
               </div>
               <div class="cat-name">Non-Agriculture</div>
             </div>
+            <div class="cat-option" onclick="selectCategory('MAIN')">
+              <div class="cat-icon" style="background:#E3F2FD; color:#0D6EFD">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </div>
+              <div class="cat-name">Main</div>
+            </div>
           </div>
           <div style="text-align:center;">
             <button class="login-btn" onclick="backToRoles()" style="background:var(--gray-200); color:var(--gray-700); padding: 8px 16px; font-size: 0.82rem; width: auto; display: inline-flex;">← Back to Roles</button>
@@ -387,6 +393,7 @@
       if (cat === 'BUSINESS') return 'Business';
       if (cat === 'AGRI') return 'Agriculture';
       if (cat === 'NON_AGRI') return 'Non-Agri';
+      if (cat === 'MAIN') return 'Main';
       return cat || '';
     }
 

@@ -297,6 +297,7 @@
             <option value="BUSINESS">Business</option>
             <option value="AGRI">Agriculture</option>
             <option value="NON_AGRI">Non-Agriculture</option>
+            <option value="MAIN">Main</option>
           </select>
         </div>
         <div class="filter-item"><div class="filter-label">Period</div>
@@ -382,6 +383,7 @@
         <option value="BUSINESS">Business</option>
         <option value="AGRI">Agriculture</option>
         <option value="NON_AGRI">Non-Agriculture</option>
+        <option value="MAIN">Main</option>
       </select>
     </div>
     <div class="form-group">
@@ -580,7 +582,7 @@ function renderComparison(d) {
     `<tr class="comparison-row" style="border-top:2px solid #000; font-weight: 800;"><td>TOTAL</td><td>${fmt.currency(d.totals.revenue)}</td><td>${fmt.currency(d.totals.expenses)}</td><td class="text-green">${fmt.currency(d.totals.profit)}</td><td>${d.totals.margin}</td></tr>`;
   if (charts.comp) charts.comp.destroy();
   charts.comp = new Chart(document.getElementById('compChart'), {
-    type: 'pie', data: { labels: d.comparison.map(c=>c.category), datasets: [{ data: d.comparison.map(c=>c.revenue), backgroundColor: ['#6B3FA0','#2d6a2e','#D4A915','#1A1A1A'] }] },
+    type: 'pie', data: { labels: d.comparison.map(c=>c.category), datasets: [{ data: d.comparison.map(c=>c.revenue), backgroundColor: ['#6B3FA0','#2d6a2e','#D4A915','#1A1A1A','#0D6EFD'] }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
   });
 }

@@ -23,6 +23,7 @@
     .biz-tag.BUSINESS { background: #2d6a2e; }
     .biz-tag.AGRI { background: #D4A915; color: #1A1A1A; }
     .biz-tag.NON_AGRI { background: #1A1A1A; }
+    .biz-tag.MAIN { background: #0D6EFD; }
     .kpi-grid { grid-template-columns: repeat(5, 1fr); }
     @media (max-width: 1024px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     .is-viewer .btn-add-product { display: none !important; }
@@ -87,6 +88,7 @@
               <option value="BUSINESS">Business</option>
               <option value="AGRI">Agriculture</option>
               <option value="NON_AGRI">Non-Agriculture</option>
+              <option value="MAIN">Main</option>
             </select>
             <button class="btn btn-primary btn-add-product" onclick="openAdd()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Product</button>
           </div>
@@ -108,7 +110,7 @@
     <div class="form-group"><label class="form-label">Product Name *</label><input id="p_name" class="form-control" placeholder="Product name"></div>
     <div class="form-row">
       <div class="form-group" style="flex:1"><label class="form-label">Business Category *</label>
-        <select id="p_biz" class="form-control"><option value="RENTAL">Rental</option><option value="BUSINESS">Business</option><option value="AGRI">Agriculture</option><option value="NON_AGRI">Non-Agriculture</option></select>
+        <select id="p_biz" class="form-control"><option value="RENTAL">Rental</option><option value="BUSINESS">Business</option><option value="AGRI">Agriculture</option><option value="NON_AGRI">Non-Agriculture</option><option value="MAIN">Main</option></select>
       </div>
       <div class="form-group" style="flex:1"><label class="form-label">Category</label><input id="p_category" class="form-control" placeholder="e.g. Supplies"></div>
     </div>
@@ -121,6 +123,7 @@
       <div class="form-group"><label class="form-label">Selling Price * (&#8369;)</label><input id="p_price" type="number" class="form-control" placeholder="0.00" min="0" step="0.01"></div>
     </div>
     <div class="form-group"><label class="form-label">Supplier</label><input id="p_supplier" class="form-control" placeholder="Supplier name"></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea id="p_description" class="form-control" placeholder="Product description (e.g. sizes, variations)..." rows="3"></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
@@ -130,9 +133,9 @@
 
 <script src="/js/app.js"></script>
 <script>
-const CATS = ['RENTAL','BUSINESS','AGRI','NON_AGRI'];
-const CAT_NAMES = { RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture' };
-const CAT_COLORS = { RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A' };
+const CATS = ['RENTAL','BUSINESS','AGRI','NON_AGRI','MAIN'];
+const CAT_NAMES = { RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture', MAIN:'Main' };
+const CAT_COLORS = { RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A', MAIN:'#0D6EFD' };
 let products = [];
 
 async function loadData() {
@@ -167,12 +170,12 @@ function updateKPIs() {
 function renderTable() {
   const search = document.getElementById('fSearch').value.toLowerCase();
   let list = products;
-  if (search) list = list.filter(p => (p.name||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search) || (p.createdBy||'').toLowerCase().includes(search));
+  if (search) list = list.filter(p => (p.name||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search) || (p.description||'').toLowerCase().includes(search) || (p.createdBy||'').toLowerCase().includes(search));
 
   const el = document.getElementById('invTable');
   if (!list.length) { el.innerHTML = '<div class="empty-state"><h3>No products found</h3></div>'; return; }
 
-  el.innerHTML = `<table><thead><tr><th>Product</th><th>Category</th><th>Biz Unit</th><th>Qty</th><th>Price</th><th>Status</th><th>Added By</th><th class="action-cell">Actions</th></tr></thead><tbody>
+  el.innerHTML = `<table><thead><tr><th>Product</th><th>Description</th><th>Category</th><th>Biz Unit</th><th>Qty</th><th>Price</th><th>Status</th><th>Added By</th><th class="action-cell">Actions</th></tr></thead><tbody>
     ${list.map(p => {
       const qty = p.quantity || 0;
       const reorder = p.reorderLevel || 10;
@@ -181,8 +184,11 @@ function renderTable() {
       else if (qty <= reorder) { status = 'Low Stock'; cls = 'low-stock'; }
       else { status = 'In Stock'; cls = 'in-stock'; }
       const biz = p._biz || p.businessCategory || 'RENTAL';
+      const desc = p.description || '';
+      const descShort = desc.length > 45 ? desc.substring(0,45)+'...' : desc;
       return `<tr>
         <td class="fw-bold">${p.name}</td>
+        <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${desc.replace(/"/g,'&quot;')}">${desc ? descShort : '—'}</td>
         <td>${p.category || '—'}</td>
         <td><span class="biz-tag ${biz}">${CAT_NAMES[biz] || biz}</span></td>
         <td>${qty}</td>
@@ -210,6 +216,7 @@ function openAdd() {
   document.getElementById('p_cost').value = '';
   document.getElementById('p_price').value = '';
   document.getElementById('p_supplier').value = '';
+  document.getElementById('p_description').value = '';
   openModal('productModal');
 }
 
@@ -227,6 +234,7 @@ function editProduct(id, biz) {
   document.getElementById('p_cost').value = p.unitCost || '';
   document.getElementById('p_price').value = p.sellingPrice || '';
   document.getElementById('p_supplier').value = p.supplier || '';
+  document.getElementById('p_description').value = p.description || '';
   openModal('productModal');
 }
 
@@ -242,6 +250,7 @@ async function saveProduct() {
     unitCost: parseFloat(document.getElementById('p_cost').value) || 0,
     sellingPrice: parseFloat(document.getElementById('p_price').value) || 0,
     supplier: document.getElementById('p_supplier').value,
+    description: document.getElementById('p_description').value,
     businessCategory: biz,
   };
   if (!data.name) { Toast.warning('Product name is required'); return; }

@@ -213,7 +213,7 @@
           }
         </style>
 
-        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
           <!-- Rental -->
           <div class="card" style="border-top: 4px solid #6B3FA0; transition: transform 0.2s">
             <div style="padding: 24px">
@@ -328,6 +328,37 @@
               </div>
             </div>
           </div>
+
+          <!-- Main -->
+          <div class="card" style="border-top: 4px solid #0D6EFD; transition: transform 0.2s">
+            <div style="padding: 24px">
+              <div style="display:flex; align-items:center; gap: 16px">
+                <div
+                  style="width:50px; height:50px; border-radius:12px; background:#E3F2FD; color:#0D6EFD; display:flex; align-items:center; justify-content:center">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 style="margin:0; font-size:1.4rem">Main</h3>
+                  <div style="color:var(--gray-600); font-size:0.9rem">Main business operations and services</div>
+                </div>
+              </div>
+              <div class="status-grid">
+                <div class="status-item"><span class="status-label">Total Revenue</span><span class="status-val"
+                    id="MAIN-rev">Loading...</span></div>
+                <div class="status-item"><span class="status-label">Total Expenses</span><span class="status-val"
+                    id="MAIN-exp">Loading...</span></div>
+                <div class="status-item"><span class="status-label">Net Profit</span><span class="status-val val-green"
+                    id="MAIN-prof">Loading...</span></div>
+                <div class="status-item"><span class="status-label">Low Stock Items</span><span class="status-val"
+                    id="MAIN-low">Loading...</span></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Business Entities Table -->
@@ -349,7 +380,7 @@
             <button class="btn btn-primary btn-sm" onclick="saveTaxes()">Save Tax Rates</button>
           </div>
           <div style="font-size:0.82rem;color:var(--gray-600);margin-bottom:20px">Configure the tax percentage rate (e.g. VAT or Sales Tax) applied to transactions for each business category.</div>
-          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
             <div class="form-group">
               <label class="form-label" style="color:#6B3FA0;font-weight:700">Rental Tax Rate (%)</label>
               <input type="number" id="tax_RENTAL" class="form-control" min="0" max="100" step="0.1" placeholder="e.g. 12">
@@ -365,6 +396,10 @@
             <div class="form-group">
               <label class="form-label" style="color:#1A1A1A;font-weight:700">Non-Agriculture Tax Rate (%)</label>
               <input type="number" id="tax_NON_AGRI" class="form-control" min="0" max="100" step="0.1" placeholder="e.g. 12">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="color:#0D6EFD;font-weight:700">Main Tax Rate (%)</label>
+              <input type="number" id="tax_MAIN" class="form-control" min="0" max="100" step="0.1" placeholder="e.g. 12">
             </div>
           </div>
 
@@ -398,6 +433,7 @@
             <option value="BUSINESS">Business</option>
             <option value="AGRI">Agriculture</option>
             <option value="NON_AGRI">Non-Agriculture</option>
+            <option value="MAIN">Main</option>
           </select>
         </div>
       </div>
@@ -466,8 +502,8 @@
         el.innerHTML = '<div class="empty-state" style="padding:30px 10px"><h3>No entities found</h3><p>Click "+ Add Entity" to register one.</p></div>';
         return;
       }
-      const cats = {RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture'};
-      const colors = {RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A'};
+      const cats = {RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture', MAIN:'Main'};
+      const colors = {RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A', MAIN:'#0D6EFD'};
       el.innerHTML = `<table><thead><tr><th>Entity Name</th><th>Main Category</th><th>Location</th><th>Manager</th><th>Status</th></tr></thead><tbody>
         ${entities.map(e => `<tr>
           <td class="fw-bold">${e.name}</td>
@@ -483,7 +519,7 @@
     async function loadProductPerformance() {
       try {
         const results = await Promise.all(
-          ['RENTAL','BUSINESS','AGRI','NON_AGRI'].map(async biz => {
+          ['RENTAL','BUSINESS','AGRI','NON_AGRI','MAIN'].map(async biz => {
             const res = await API.get('/api/sales?biz=' + biz);
             return { biz, data: res.success ? (res.data || []) : [] };
           })
@@ -578,7 +614,7 @@
           }
         }
       });
-      ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'].forEach(biz => loadStatus(biz));
+      ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI', 'MAIN'].forEach(biz => loadStatus(biz));
       loadEntities();
       loadProductPerformance();
     });
@@ -629,6 +665,7 @@
           document.getElementById('tax_BUSINESS').value = res.data.BUSINESS !== undefined ? res.data.BUSINESS : 12;
           document.getElementById('tax_AGRI').value = res.data.AGRI !== undefined ? res.data.AGRI : 0;
           document.getElementById('tax_NON_AGRI').value = res.data.NON_AGRI !== undefined ? res.data.NON_AGRI : 12;
+          document.getElementById('tax_MAIN').value = res.data.MAIN !== undefined ? res.data.MAIN : 12;
         }
       } catch (err) { console.error('Error loading taxes:', err); }
     }
@@ -638,7 +675,8 @@
         RENTAL: parseFloat(document.getElementById('tax_RENTAL').value) || 0,
         BUSINESS: parseFloat(document.getElementById('tax_BUSINESS').value) || 0,
         AGRI: parseFloat(document.getElementById('tax_AGRI').value) || 0,
-        NON_AGRI: parseFloat(document.getElementById('tax_NON_AGRI').value) || 0
+        NON_AGRI: parseFloat(document.getElementById('tax_NON_AGRI').value) || 0,
+        MAIN: parseFloat(document.getElementById('tax_MAIN').value) || 0
       };
       try {
         const res = await API.post('/api/admin/taxes', { taxes });

@@ -92,7 +92,7 @@
       <!-- Welcome -->
       <div class="welcome-card">
         <h2>Welcome back!</h2>
-        <p>Centralized Monitoring View — All 4 Business Categories</p>
+        <p>Centralized Monitoring View — All 5 Business Categories</p>
       </div>
 
       <!-- Date Range Filter -->
@@ -100,7 +100,7 @@
         <div class="filter-item"><div class="filter-label">Date From</div><input type="date" id="fDateFrom" class="filter-control"></div>
         <div class="filter-item"><div class="filter-label">Date To</div><input type="date" id="fDateTo" class="filter-control"></div>
         <div class="filter-item"><div class="filter-label">Business Unit</div>
-          <select id="fBizUnit" class="filter-control"><option value="">All Categories</option><option value="RENTAL">Rental</option><option value="BUSINESS">Business</option><option value="AGRI">Agriculture</option><option value="NON_AGRI">Non-Agriculture</option></select>
+          <select id="fBizUnit" class="filter-control"><option value="">All Categories</option><option value="RENTAL">Rental</option><option value="BUSINESS">Business</option><option value="AGRI">Agriculture</option><option value="NON_AGRI">Non-Agriculture</option><option value="MAIN">Main</option></select>
         </div>
         <button class="btn btn-primary btn-sm" style="margin-top:18px" onclick="loadKPI()">Apply Filter</button>
       </div>
@@ -169,6 +169,13 @@
           <div class="biz-cat-revenue" style="color:#1A1A1A">₱0</div>
           <div class="biz-cat-tax" style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Tax: <span id="tax_NON_AGRI">—</span></div>
         </div>
+        <div class="biz-cat-card" onclick="location.href='/admin/business?cat=MAIN'">
+          <div class="cat-stripe" style="background:#0D6EFD"></div>
+          <div class="biz-cat-name">Main</div>
+          <div class="biz-cat-count">0 business units</div>
+          <div class="biz-cat-revenue" style="color:#0D6EFD">₱0</div>
+          <div class="biz-cat-tax" style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Tax: <span id="tax_MAIN">—</span></div>
+        </div>
       </div>
 
       <!-- Charts + Low Stock Alerts -->
@@ -228,7 +235,7 @@
             Print
           </button>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px" id="taxIncomeGrid"></div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:16px" id="taxIncomeGrid"></div>
         <div style="text-align:right;font-size:1.1rem;font-weight:800;padding-top:12px;border-top:2px solid var(--gray-200)">
           Total Tax Collected: <span id="totalTaxIncome" style="color:var(--green)">₱0.00</span>
         </div>
@@ -239,10 +246,10 @@
 
 <script src="/js/app.js"></script>
 <script>
-const CATS = ['RENTAL','BUSINESS','AGRI','NON_AGRI'];
-const CAT_NAMES = { RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture' };
-const CAT_COLORS = { RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A' };
-const CAT_COLORS_LIGHT = { RENTAL:'#B39DDB', BUSINESS:'#81C784', AGRI:'#FFE082', NON_AGRI:'#757575' };
+const CATS = ['RENTAL','BUSINESS','AGRI','NON_AGRI','MAIN'];
+const CAT_NAMES = { RENTAL:'Rental', BUSINESS:'Business', AGRI:'Agriculture', NON_AGRI:'Non-Agriculture', MAIN:'Main' };
+const CAT_COLORS = { RENTAL:'#6B3FA0', BUSINESS:'#2d6a2e', AGRI:'#D4A915', NON_AGRI:'#1A1A1A', MAIN:'#0D6EFD' };
+const CAT_COLORS_LIGHT = { RENTAL:'#B39DDB', BUSINESS:'#81C784', AGRI:'#FFE082', NON_AGRI:'#757575', MAIN:'#90CDF4' };
 let salesChart;
 let allData = { sales:{}, expenses:{}, inventory:{} };
 
@@ -537,7 +544,7 @@ function renderSalesChart() {
   salesChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Rental', 'Business', 'Agriculture', 'Non-Agri'],
+      labels: CATS.map(c => CAT_NAMES[c]),
       datasets: [
         { label: 'Revenue', data: revData, backgroundColor: Object.values(CAT_COLORS), borderRadius: 6 },
         { label: 'Expenses', data: expData, backgroundColor: Object.values(CAT_COLORS_LIGHT), borderRadius: 6 },

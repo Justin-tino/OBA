@@ -623,7 +623,7 @@ tbody tr:last-child { border-bottom: none; }
 .notif-time { font-size: 0.7rem; color: var(--gray-400); margin-top: 4px; }
 
 /* ── Business Category Cards ──────────────────────────────────────── */
-.biz-cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.biz-cat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
 .biz-cat-card {
   background: var(--white); border-radius: var(--radius);
   padding: 20px; border: 1px solid var(--gray-200);

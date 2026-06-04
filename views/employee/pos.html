@@ -90,6 +90,7 @@
                   <option value="BUSINESS">Business</option>
                   <option value="AGRI">Agriculture</option>
                   <option value="NON_AGRI">Non-Agriculture</option>
+                  <option value="MAIN">Main</option>
                 </select>
               </div>
               <div class="form-group" style="margin:0;flex:1">
@@ -173,7 +174,7 @@ let inventory = [];
 let paymentMethod = 'cash';
 let currentBiz = 'RENTAL';
 let scanner = null;
-const DEFAULT_TAX_RATES = { RENTAL: 12, BUSINESS: 12, AGRI: 0, NON_AGRI: 12 };
+const DEFAULT_TAX_RATES = { RENTAL: 12, BUSINESS: 12, AGRI: 0, NON_AGRI: 12, MAIN: 12 };
 let taxRates = { ...DEFAULT_TAX_RATES };
 
 async function fetchTaxRates() {

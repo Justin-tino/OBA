@@ -1,4 +1,4 @@
-require('dotenv').config();
++require('dotenv').config();
 const { auth, db } = require('./config/firebase');
 
 const MANAGERS = [
@@ -21,6 +21,11 @@ const MANAGERS = [
     email: 'nonagri_manager@psau.edu.ph',
     name: 'Non-Agri Category Manager',
     businesses: ['NON_AGRI']
+  },
+  {
+    email: 'main_manager@psau.edu.ph',
+    name: 'Main Category Manager',
+    businesses: ['MAIN']
   }
 ];
 

@@ -8,7 +8,7 @@ const router = express.Router();
 const { db } = require('../config/firebase');
 const { requireViewer } = require('../middleware/auth.middleware');
 
-const BIZ_CATEGORIES = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI'];
+const BIZ_CATEGORIES = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI', 'MAIN'];
 
 function filterByPeriod(list, periodStr, dateField = 'date') {
   const now = new Date();
@@ -170,7 +170,7 @@ router.get('/:bizId/balance-summary', requireViewer, async (req, res) => {
 router.get('/all/comparison', requireViewer, async (req, res) => {
   try {
     const comparison = [];
-    const catsMap = { RENTAL: 'Rental', BUSINESS: 'Business', AGRI: 'Agriculture', NON_AGRI: 'Non-Agriculture' };
+    const catsMap = { RENTAL: 'Rental', BUSINESS: 'Business', AGRI: 'Agriculture', NON_AGRI: 'Non-Agriculture', MAIN: 'Main' };
     
     let totalRev = 0;
     let totalExp = 0;
