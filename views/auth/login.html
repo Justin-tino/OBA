@@ -107,8 +107,9 @@
       margin-top: 2px;
     }
     .cat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 12px;
       margin-bottom: 16px;
     }
@@ -116,8 +117,10 @@
       flex-direction: column;
       text-align: center;
       justify-content: center;
-      padding: 20px 12px;
+      padding: 20px 8px;
       margin-bottom: 0;
+      width: calc(33.333% - 8px);
+      box-sizing: border-box;
     }
     .cat-icon {
       margin-bottom: 10px;

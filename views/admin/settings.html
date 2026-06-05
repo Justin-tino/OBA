@@ -47,7 +47,7 @@
       <a class="nav-item" href="/admin/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
       <a class="nav-item" href="/admin/users"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Users</a>
       <a class="nav-item active" href="/admin/settings"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Settings</a>
-      <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+      <a class="nav-item" href="javascript:void(0)" onclick="confirm('Are you sure you want to logout?', () => window.location.href='/logout');"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user"><div class="sidebar-avatar">A</div><div><div class="sidebar-user-name" id="sidebarName">Loading...</div><div class="sidebar-user-role">Logged in as:</div></div></div>
@@ -57,7 +57,8 @@
   <div class="main-content">
     <div class="topbar topbar-green">
       <div class="flex-c gap-12">
-        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        
+        <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></button>
         <span class="topbar-title">System Settings</span>
       </div>
       <div class="topbar-actions">
@@ -80,10 +81,7 @@
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
           Backup & Recovery
         </div>
-        <div class="settings-tab" onclick="switchSettingsTab('general',this)">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          General
-        </div>
+
       </div>
 
       <!-- Audit Trail Tab -->
@@ -96,11 +94,11 @@
           <div class="report-tab" onclick="switchAudit('alerts',this)">Alert Logs</div>
         </div>
         <div class="filters-bar" style="margin-bottom:20px">
-          <div class="filter-item"><div class="filter-label">Filter by User</div><input type="text" id="fUser" class="filter-control" placeholder="User name..." oninput="renderLogs()"></div>
-          <div class="filter-item"><div class="filter-label">Date From</div><input type="date" id="fFrom" class="filter-control" onchange="renderLogs()"></div>
-          <div class="filter-item"><div class="filter-label">Date To</div><input type="date" id="fTo" class="filter-control" onchange="renderLogs()"></div>
+          <div class="filter-item"><div class="filter-label">Filter by User</div><input type="text" id="fUser" class="filter-control" placeholder="User name..." oninput="applyFilters()"></div>
+          <div class="filter-item"><div class="filter-label">Date From</div><input type="date" id="fFrom" class="filter-control" onchange="applyFilters()"></div>
+          <div class="filter-item"><div class="filter-label">Date To</div><input type="date" id="fTo" class="filter-control" onchange="applyFilters()"></div>
           <div class="filter-item"><div class="filter-label">Action</div>
-            <select id="fAction" class="filter-control" onchange="renderLogs()"><option value="">All Actions</option><option value="LOGIN">Login</option><option value="CREATE">Create</option><option value="EDIT">Edit</option><option value="DELETE">Delete</option></select>
+            <select id="fAction" class="filter-control" onchange="applyFilters()"><option value="">All Actions</option><option value="LOGIN">Login</option><option value="CREATE">Create</option><option value="EDIT">Edit</option><option value="DELETE">Delete</option></select>
           </div>
           <button class="btn-export" style="margin-top:18px" onclick="exportAudit()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg> Export</button>
         </div>
@@ -138,27 +136,7 @@
         </div>
       </div>
 
-      <!-- General Settings Tab -->
-      <div id="panel-general" style="display:none">
-        <div class="card" style="max-width:600px;margin:0 auto;padding:32px">
-          <h3 style="margin-bottom:20px">General Settings</h3>
-          <div class="form-group" style="margin-bottom:20px">
-            <label class="form-label">System Name</label>
-            <input type="text" class="form-control" id="sysName" value="OBA System - PSAU" placeholder="System name">
-          </div>
-          <div class="form-group" style="margin-bottom:20px">
-            <label class="form-label">Items Per Page</label>
-            <select class="form-control" id="sysPerPage">
-              <option value="10">10</option>
-              <option value="25" selected>25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          <button class="btn btn-primary" onclick="saveGeneralSettings()">Save Settings</button>
-          <div id="generalResult" style="margin-top:12px"></div>
-        </div>
-      </div>
+
     </div>
   </div>
 </div>
@@ -180,7 +158,7 @@ const mockLogs = [
 function switchSettingsTab(name, el) {
   document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  ['audit','backup','general'].forEach(n => document.getElementById('panel-' + n).style.display = 'none');
+  ['audit','backup'].forEach(n => document.getElementById('panel-' + n).style.display = 'none');
   document.getElementById('panel-' + name).style.display = 'block';
   if (name === 'backup') loadBackupInfo();
 }
@@ -201,7 +179,14 @@ async function loadData() {
     const res = await API.get('/api/admin/audit-logs');
     auditLogs = (res.success && res.data.length) ? res.data : mockLogs;
   } catch { auditLogs = mockLogs; }
+  applyFilters();
+}
+
+function applyFilters() {
   renderLogs();
+  renderEdits();
+  renderSuspicious();
+  if (typeof renderActivity === 'function') renderActivity();
 }
 
 function parseTS(ts) {
@@ -276,24 +261,42 @@ function renderLogs() {
 }
 
 function renderEdits() {
-  const edits = auditLogs.filter(l => l.previousValue || l.newValue);
+  const edits = filterLogs(auditLogs).filter(l => l.previousValue || l.newValue);
   document.getElementById('editsTable').innerHTML = !edits.length ? '<div class="empty-state"><h3>No edit history</h3></div>' :
     `<table><thead><tr><th>Details</th><th>Previous</th><th>New</th><th>By</th><th>When</th></tr></thead><tbody>
     ${edits.map(l => `<tr><td>${l.details||''}</td><td style="color:var(--danger);text-decoration:line-through">${l.previousValue||'—'}</td><td style="color:var(--green);font-weight:700">${l.newValue||'—'}</td><td>${l.userName}</td><td style="font-size:0.82rem">${fmt.datetime(l.timestamp)}</td></tr>`).join('')}</tbody></table>`;
 }
 
 function renderSuspicious() {
-  const sus = auditLogs.filter(l => l.isSuspicious);
+  const sus = filterLogs(auditLogs).filter(l => l.isSuspicious);
   document.getElementById('suspiciousTable').innerHTML = !sus.length ? '<div class="empty-state"><h3>No suspicious changes detected</h3></div>' :
     `<table><thead><tr><th>Action</th><th>Details</th><th>User</th><th>Timestamp</th></tr></thead><tbody>
     ${sus.map(l => `<tr class="suspicious-row"><td>${actionBadge(l.action)}</td><td>${l.details||''}</td><td class="fw-bold">${l.userName}</td><td style="font-size:0.82rem">${fmt.datetime(l.timestamp)}</td></tr>`).join('')}</tbody></table>`;
 }
 
+let activityUsers = [];
+
 async function loadActivity() {
   try {
     const res = await API.get('/api/admin/user-activity');
-    const users = res.success ? res.data : [];
-    document.getElementById('activityList').innerHTML = users.map(u => `
+    activityUsers = res.success ? res.data : [];
+    renderActivity();
+  } catch { document.getElementById('activityList').innerHTML = '<div class="empty-state"><h3>Error loading activity</h3></div>'; }
+}
+
+function renderActivity() {
+  let list = activityUsers;
+  const userQuery = document.getElementById('fUser').value.toLowerCase();
+  if (userQuery) {
+    list = list.filter(u => u.name.toLowerCase().includes(userQuery) || u.email.toLowerCase().includes(userQuery));
+  }
+  
+  if (!list.length) {
+    document.getElementById('activityList').innerHTML = '<div class="empty-state"><h3>No users found</h3></div>';
+    return;
+  }
+  
+  document.getElementById('activityList').innerHTML = list.map(u => `
       <div class="activity-card">
         <div class="flex-c gap-12">
           <div class="sidebar-avatar" style="width:36px;height:36px;font-size:0.8rem;background:${u.role==='admin'?'var(--danger)':'var(--green)'}">${u.name.charAt(0)}</div>
@@ -305,7 +308,6 @@ async function loadActivity() {
           <div style="text-align:right"><div style="font-size:0.78rem;color:var(--gray-400)">Actions</div><div style="font-size:0.82rem;font-weight:700">${u.actions||0}</div></div>
         </div>
       </div>`).join('');
-  } catch { document.getElementById('activityList').innerHTML = '<div class="empty-state"><h3>Error loading activity</h3></div>'; }
 }
 
 async function loadAlerts() {
@@ -392,14 +394,7 @@ async function restoreBackup() {
   });
 }
 
-function saveGeneralSettings() {
-  const name = document.getElementById('sysName').value;
-  const perPage = document.getElementById('sysPerPage').value;
-  localStorage.setItem('oba_system_name', name);
-  localStorage.setItem('oba_per_page', perPage);
-  document.getElementById('generalResult').innerHTML = '<div class="alert alert-success">Settings saved locally.</div>';
-  setTimeout(() => document.getElementById('generalResult').innerHTML = '', 3000);
-}
+
 
 document.addEventListener('DOMContentLoaded', () => {
   loadData();

@@ -273,7 +273,7 @@ async function applyManagerNav() {
         <a class="nav-item" href="/manager/reports"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span> Reports</a>
         <a class="nav-item" href="/manager/employees"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Manage Employees</a>
         <a class="nav-item" href="/manager/notifications"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Notifications</a>
-        <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
+        <a class="nav-item" href="javascript:void(0)" onclick="confirm('Are you sure you want to logout?', () => window.location.href='/logout');"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout</a>
       `;
       // Set active class based on current page name
       const page = window.location.pathname.split('/').pop().split('?')[0];
@@ -487,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <strong>Role:</strong> ${u.role.toUpperCase()}<br>
               <strong>Business Access:</strong> ${u.businessAccess.join(', ')}
             </div>
-            <a href="/logout" style="display:block;margin-top:10px;text-align:center;background:var(--danger);color:#fff;padding:8px;border-radius:4px;text-decoration:none;font-weight:bold">Sign Out</a>
+            <a href="javascript:void(0)" onclick="confirm('Are you sure you want to logout?', () => window.location.href='/logout');" style="display:block;margin-top:10px;text-align:center;background:var(--danger);color:#fff;padding:8px;border-radius:4px;text-decoration:none;font-weight:bold">Sign Out</a>
           `, 8000);
         } else {
           Toast.warning('User not logged in.');

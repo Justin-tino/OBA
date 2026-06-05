@@ -9,6 +9,39 @@ const { db } = require('../config/firebase');
 const { requireViewer } = require('../middleware/auth.middleware');
 
 const BIZ_CATEGORIES = ['RENTAL', 'BUSINESS', 'AGRI', 'NON_AGRI', 'MAIN'];
+const DEFAULT_TAX_RATES = { RENTAL: 12, BUSINESS: 12, AGRI: 0, NON_AGRI: 12, MAIN: 12 };
+
+async function getBizTaxRate(bizId) {
+  if (!db) return DEFAULT_TAX_RATES[bizId] || 0;
+  try {
+    const snap = await db.ref('settings/taxes').once('value');
+    const rates = snap.val() || DEFAULT_TAX_RATES;
+    return rates[bizId] || DEFAULT_TAX_RATES[bizId] || 0;
+  } catch (e) {
+    return DEFAULT_TAX_RATES[bizId] || 0;
+  }
+}
+
+function calcTaxes(sales, gross, taxRate) {
+  const stored = sales.reduce((a, s) => a + (parseFloat(s.taxAmount) || 0), 0);
+  if (stored > 0) return stored;
+  if (gross === 0 || taxRate === 0) return 0;
+  return gross * (taxRate / (100 + taxRate));
+}
+
+function computeCOGS(sales, inventory) {
+  const invMap = {};
+  inventory.forEach(item => { invMap[item.id] = item; });
+  return sales.reduce((total, sale) => {
+    const items = sale.items || [];
+    return total + items.reduce((sum, item) => {
+      const inv = invMap[item.id];
+      if (!inv) return sum;
+      const qty = parseInt(item.quantity || item.qty || 1);
+      return sum + (parseFloat(inv.unitCost || 0) * qty);
+    }, 0);
+  }, 0);
+}
 
 function filterByPeriod(list, periodStr, dateField = 'date') {
   const now = new Date();
@@ -44,7 +77,8 @@ async function getBizData(bizId, period) {
   
   const allSales = Object.values(sSnap.val() || {});
   const allExp = Object.values(eSnap.val() || {});
-  const inventory = Object.values(iSnap.val() || {});
+  const invVal = iSnap.val() || {};
+  const inventory = Object.keys(invVal).map(k => ({ id: k, ...invVal[k] }));
   
   const sales = period ? filterByPeriod(allSales, period, 'date') : allSales;
   const expenses = period ? filterByPeriod(allExp, period, 'createdAt') : allExp;
@@ -59,15 +93,22 @@ router.get('/:bizId/summary', requireViewer, async (req, res) => {
   try {
     const { sales, expenses, inventory } = await getBizData(bizId, period);
     
-    const revenue = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const grossSales = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const taxRate = await getBizTaxRate(bizId);
+    const taxes = calcTaxes(sales, grossSales, taxRate);
+    const netSales = grossSales - taxes;
     const otherIncome = expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
-    const totalRev = revenue + otherIncome;
     
-    const expTotal = expenses.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
-    const profit = totalRev - expTotal;
+    const cogs = computeCOGS(sales, inventory);
+    const otherExpenses = expenses.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    
+    // For summary, total revenue = net revenue from the business' perspective
+    const revenue = netSales + otherIncome;
+    const totalExpenses = cogs + otherExpenses;
+    const profit = revenue - totalExpenses;
     
     // Breakdown logic
-    const eb = { utilities: 0, suppliers: 0, salary: 0, other: 0 };
+    const eb = { cogs, utilities: 0, suppliers: 0, salary: 0, other: 0 };
     expenses.filter(e => e.type === 'expense').forEach(e => {
       const c = (e.category || '').toLowerCase();
       if (c.includes('util')) eb.utilities += parseFloat(e.amount)||0;
@@ -77,10 +118,13 @@ router.get('/:bizId/summary', requireViewer, async (req, res) => {
     });
 
     res.json({ success: true, data: {
-      revenue: totalRev,
-      expenses: expTotal,
+      revenue,
+      expenses: totalExpenses,
+      cogs,
       profit,
-      roi: expTotal > 0 ? ((profit / expTotal) * 100) : 0,
+      taxes,
+      grossSales,
+      roi: totalExpenses > 0 ? ((profit / totalExpenses) * 100) : 0,
       salesCount: sales.length,
       period,
       expenseBreakdown: eb
@@ -95,18 +139,22 @@ router.get('/:bizId/income-statement', requireViewer, async (req, res) => {
   const { bizId } = req.params;
   const { period = 'month' } = req.query;
   try {
-    const { sales, expenses } = await getBizData(bizId, period);
-    const salesRevenue = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const { sales, expenses, inventory } = await getBizData(bizId, period);
+    const grossSales = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const taxRate = await getBizTaxRate(bizId);
+    const taxes = calcTaxes(sales, grossSales, taxRate);
+    const salesRevenue = grossSales - taxes;
     const otherIncome = expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
-    const totalRevenue = salesRevenue + otherIncome;
+    const totalRevenue = salesRevenue + taxes + otherIncome;
     
-    const cogs = expenses.filter(e => e.type === 'expense' && (e.category||'').toLowerCase().includes('suppl')).reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
-    const operatingExpenses = expenses.filter(e => e.type === 'expense' && !(e.category||'').toLowerCase().includes('suppl')).reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    // COGS from actual inventory cost of sold items, not from expense records
+    const cogs = computeCOGS(sales, inventory);
+    const operatingExpenses = expenses.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
     const totalExpenses = cogs + operatingExpenses;
-    const netIncome = totalRevenue - totalExpenses;
+    const netIncome = salesRevenue + otherIncome - totalExpenses;
     
     res.json({ success: true, data: {
-      salesRevenue, otherIncome, totalRevenue, costOfGoods: cogs, operatingExpenses, totalExpenses, netIncome, period
+      salesRevenue, taxes, otherIncome, totalRevenue, costOfGoods: cogs, operatingExpenses, totalExpenses, netIncome, period
     }});
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -119,7 +167,11 @@ router.get('/:bizId/cash-flow', requireViewer, async (req, res) => {
   const { period = 'month' } = req.query;
   try {
     const { sales, expenses } = await getBizData(bizId, period);
-    const receipts = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0) + expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    const grossSales = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const taxRate = await getBizTaxRate(bizId);
+    const taxes = calcTaxes(sales, grossSales, taxRate);
+    const netSales = grossSales - taxes;
+    const receipts = netSales + expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
     const payments = expenses.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
     const netOperating = receipts - payments;
     
@@ -143,18 +195,22 @@ router.get('/:bizId/balance-summary', requireViewer, async (req, res) => {
   try {
     const { sales, expenses, inventory } = await getBizData(bizId, null);
     
-    const receipts = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0) + expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+    const grossSales = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+    const taxRate = await getBizTaxRate(bizId);
+    const taxes = calcTaxes(sales, grossSales, taxRate);
+    const netSales = grossSales - taxes;
+    const otherIncome = expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
     const payments = expenses.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
-    const cash = Math.max(0, receipts - payments);
     
+    const cash = Math.max(0, netSales + otherIncome - payments);
     const invValue = inventory.reduce((a,i) => a + ((parseFloat(i.unitCost)||0) * (parseInt(i.quantity)||0)), 0);
+    const totalAssets = cash + invValue;
     
-    const receivables = cash * 0.05;
-    const payables = payments * 0.05;
-    
-    const totalAssets = cash + invValue + receivables;
-    const totalLiabilities = payables;
-    const equity = totalAssets - totalLiabilities;
+    // No AR/AP tracking — set to 0 with note
+    const receivables = 0;
+    const payables = 0;
+    const totalLiabilities = 0;
+    const equity = totalAssets;
     
     res.json({ success: true, data: {
       assets: { cash, inventory: invValue, receivables, totalAssets },
@@ -177,19 +233,24 @@ router.get('/all/comparison', requireViewer, async (req, res) => {
     let totalProf = 0;
     
     for (const bizId of BIZ_CATEGORIES) {
-      const { sales, expenses } = await getBizData(bizId, null);
-      const rev = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0) + expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
-      const exp = expenses.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
-      const prof = rev - exp;
+      const { sales, expenses, inventory } = await getBizData(bizId, null);
+      const grossSales = sales.reduce((a,s) => a + (parseFloat(s.total)||0), 0);
+      const taxRate = await getBizTaxRate(bizId);
+      const taxes = calcTaxes(sales, grossSales, taxRate);
+      const netSales = grossSales - taxes;
+      const rev = netSales + expenses.filter(e => e.type === 'income').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+      const cogs = computeCOGS(sales, inventory);
+      const opExp = expenses.filter(e => e.type === 'expense').reduce((a,e) => a + (parseFloat(e.amount)||0), 0);
+      const prof = rev - cogs - opExp;
       
       totalRev += rev;
-      totalExp += exp;
+      totalExp += cogs + opExp;
       totalProf += prof;
       
       comparison.push({
         category: catsMap[bizId],
         revenue: rev,
-        expenses: exp,
+        expenses: cogs + opExp,
         profit: prof,
         margin: rev > 0 ? ((prof / rev) * 100).toFixed(1) + '%' : '0.0%'
       });

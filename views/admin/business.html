@@ -125,7 +125,7 @@
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg></span> Manage Users</a>
         <a class="nav-item" href="/admin/settings"><span class="nav-icon"><svg width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Settings</a>
-        <a class="nav-item" href="/logout"><span class="nav-icon"><svg width="1em" height="1em" fill="none"
+        <a class="nav-item" href="javascript:void(0)" onclick="confirm('Are you sure you want to logout?', () => window.location.href='/logout');"><span class="nav-icon"><svg width="1em" height="1em" fill="none"
               stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
@@ -146,13 +146,9 @@
     <div class="main-content">
       <div class="topbar topbar-green">
         <div class="flex-c gap-12">
-          <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="18" height="18"
-              fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg></button>
-          <span class="topbar-title">Business Management</span>
+          
+          <button class="btn btn-ghost btn-icon" id="hamburger" style="color:#fff"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></button>
+        <span class="topbar-title">Business Management</span>
         </div>
         <div class="topbar-actions">
           <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown()">
@@ -213,9 +209,27 @@
           }
         </style>
 
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+        <style>
+          .biz-cards-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+          }
+          .biz-card-item {
+            width: calc(33.333% - 16px);
+            box-sizing: border-box;
+          }
+          @media (max-width: 1200px) {
+            .biz-card-item { width: calc(50% - 12px); }
+          }
+          @media (max-width: 768px) {
+            .biz-card-item { width: 100%; }
+          }
+        </style>
+        <div class="biz-cards-wrapper">
           <!-- Rental -->
-          <div class="card" style="border-top: 4px solid #6B3FA0; transition: transform 0.2s">
+          <div class="card biz-card-item" style="border-top: 4px solid #6B3FA0; transition: transform 0.2s">
             <div style="padding: 24px">
               <div style="display:flex; align-items:center; gap: 16px">
                 <div
@@ -244,7 +258,7 @@
           </div>
 
           <!-- Business -->
-          <div class="card" style="border-top: 4px solid #2d6a2e; transition: transform 0.2s">
+          <div class="card biz-card-item" style="border-top: 4px solid #2d6a2e; transition: transform 0.2s">
             <div style="padding: 24px">
               <div style="display:flex; align-items:center; gap: 16px">
                 <div
@@ -273,7 +287,7 @@
           </div>
 
           <!-- Agriculture -->
-          <div class="card" style="border-top: 4px solid #D4A915; transition: transform 0.2s">
+          <div class="card biz-card-item" style="border-top: 4px solid #D4A915; transition: transform 0.2s">
             <div style="padding: 24px">
               <div style="display:flex; align-items:center; gap: 16px">
                 <div
@@ -301,7 +315,7 @@
           </div>
 
           <!-- Non-Agriculture -->
-          <div class="card" style="border-top: 4px solid #1A1A1A; transition: transform 0.2s">
+          <div class="card biz-card-item" style="border-top: 4px solid #1A1A1A; transition: transform 0.2s">
             <div style="padding: 24px">
               <div style="display:flex; align-items:center; gap: 16px">
                 <div
@@ -330,7 +344,7 @@
           </div>
 
           <!-- Main -->
-          <div class="card" style="border-top: 4px solid #0D6EFD; transition: transform 0.2s">
+          <div class="card biz-card-item" style="border-top: 4px solid #0D6EFD; transition: transform 0.2s">
             <div style="padding: 24px">
               <div style="display:flex; align-items:center; gap: 16px">
                 <div
